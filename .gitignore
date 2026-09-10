@@ -8,3 +8,5 @@ Intermediate/
 Examples/
 *.xlsm
 environmentExamples.yml
+Outputs/SCurveStats.csv
+Outputs/RimInflows_Summary*.csv

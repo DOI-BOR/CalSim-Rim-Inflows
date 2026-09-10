@@ -19,7 +19,7 @@ All the Upper American related files are named with the 'upper_american_' prefix
 
 The *upper_american_2022_extension_data.csv* file contains the data used in the previous extension. Where possible, the gap filling was removed and moved to be done in the code. Places where the DWR COMP model was used, were not removed.
 
-## To calculate the rim inflows
+## Calculating Rim Inflows
 
 ### To create an environment
 
@@ -27,7 +27,11 @@ The *upper_american_2022_extension_data.csv* file contains the data used in the 
 
 `conda activate extension`
 
-### To recreate the rim inflows with the data in the repository:
+### To run the full rim inflow dataset calculations
+
+To run the full set of rim inflow scripts, run the run_rim_inflows.bat script. This batch file will run all rim inflows calculations for all locations within this respository as well as a summary script to caclutate summary metrics for all rim inflows.
+
+### To recreate the rim inflows for a basin with the data in the repository:
 
 Run `python upper_american_data_read.py` to read in the data and then `python upper_american_calculate_rim_inflows.py` to calculate the rim inflows.
 
@@ -39,6 +43,11 @@ The calculated flows will be in the *Outputs* folder in *upper_american_rim_infl
 3. Run `python upper_american_data_read.py` to read in the data and then `python upper_american_calculate_rim_inflows.py` to calculate the rim inflows.
 
 The calculated flows will be in the *Outputs* folder in *rim_inflows.csv*.
+
+### To run summary statistics
+Run `python Summary_statistics.py` to calculate summary statistics for each rim inflow location. *Note rim inflows must be calculated prior to running the summary script
+
+## Developing Rim Inflows
 
 ### To incorporate additional locations
 Every location is different so the process to incorporate a new location is going to look different every time. For a new basin, create a new set of files named with the basin name. Generally, the following this must be added:

@@ -14,6 +14,9 @@ if __name__ == "__main__":
     # option to plot comparison
     b_compare_data = True
 
+    # option to save s-curve dissagregation data (slope, intercept, r2)
+    b_save_stats = True
+
     # option to run each element using "upstream" (antecedent) SV INPUT values from sheets rather than from the values
     # calculated within the Python code.
     b_use_upstream_sv_inputs = True
@@ -43,6 +46,12 @@ if __name__ == "__main__":
 
     # path for some extra sv inputs
     s_prev_rim_inflows_extra = r".\Inputs\upper_mokelumne_2022_sv_inputs.csv"
+
+    # if s-curve parameter output is desired, create initial output file to write to
+    if b_save_stats and not os.path.exists('Outputs/SCurveStats.csv'):
+        pd.DataFrame(columns=['location','stat','value']).to_csv('Outputs/SCurveStats.csv')
+
+
     # first if the needed output folders don't exist, create them
     os.makedirs('./Intermediate', exist_ok=True)
     os.makedirs('./Figures', exist_ok=True)
@@ -65,22 +74,22 @@ if __name__ == "__main__":
 
         # create a list of lists. inner elements are ['column_name', 'path to before csv', 'path to after csv']
         ls_sheet_info = [['COL003', './Inputs/s_curve_replication/col003_input_to_s_curve.csv',
-                          './Inputs/s_curve_replication/col003_output_from_s_curve.csv'],
-                         ['SLTSP', './Inputs/s_curve_replication/sltsp_input_to_s_curve.csv',
-                          './Inputs/s_curve_replication/sltsp_output_from_s_curve.csv'],
-                         ['UBEAR', './Inputs/s_curve_replication/ubear_input_to_s_curve.csv',
-                         './Inputs/s_curve_replication/ubear_output_from_s_curve.csv'],
-                         ['NFM010', './Inputs/s_curve_replication/nfm010_input_to_s_curve.csv',
-                         './Inputs/s_curve_replication/nfm010_output_from_s_curve.csv'],
-                         ['TGC003', './Inputs/s_curve_replication/nfm010_input_to_s_curve.csv',
-                         './Inputs/s_curve_replication/tgc003_output_from_s_curve.csv'],
-                         ['CMP001', './Inputs/s_curve_replication/cmp001_input_to_s_curve.csv',
-                          './Inputs/s_curve_replication/cmp001_output_from_s_curve.csv'],
-                         ['CMP014', './Inputs/s_curve_replication/cmp014_input_to_s_curve.csv',
-                         './Inputs/s_curve_replication/cmp014_output_from_s_curve.csv'],
-                         ['DEE023', './Inputs/s_curve_replication/dee023_input_to_s_curve.csv',
-                         './Inputs/s_curve_replication/dee023_output_from_s_curve.csv']
-                         ]
+                            './Inputs/s_curve_replication/col003_output_from_s_curve.csv'],
+                            ['SLTSP', './Inputs/s_curve_replication/sltsp_input_to_s_curve.csv',
+                            './Inputs/s_curve_replication/sltsp_output_from_s_curve.csv'],
+                            ['UBEAR', './Inputs/s_curve_replication/ubear_input_to_s_curve.csv',
+                            './Inputs/s_curve_replication/ubear_output_from_s_curve.csv'],
+                            ['NFM010', './Inputs/s_curve_replication/nfm010_input_to_s_curve.csv',
+                            './Inputs/s_curve_replication/nfm010_output_from_s_curve.csv'],
+                            ['TGC003', './Inputs/s_curve_replication/nfm010_input_to_s_curve.csv',
+                            './Inputs/s_curve_replication/tgc003_output_from_s_curve.csv'],
+                            ['CMP001', './Inputs/s_curve_replication/cmp001_input_to_s_curve.csv',
+                            './Inputs/s_curve_replication/cmp001_output_from_s_curve.csv'],
+                            ['CMP014', './Inputs/s_curve_replication/cmp014_input_to_s_curve.csv',
+                            './Inputs/s_curve_replication/cmp014_output_from_s_curve.csv'],
+                            ['DEE023', './Inputs/s_curve_replication/dee023_input_to_s_curve.csv',
+                            './Inputs/s_curve_replication/dee023_output_from_s_curve.csv']
+                            ]
         # create the dataframes where we keep the before and after data
         df_before_s = pd.DataFrame()
         df_after_s = pd.DataFrame()
@@ -92,7 +101,7 @@ if __name__ == "__main__":
     # ----------------------------------
     # in CMP001, fill the JNKSN_STORAGE in December 1965 with linear interpolation of the adjacent months.
     df_full_data.loc['1965-12-31', 'JNKSN_STORAGE'] = (df_full_data.loc['1965-11-30', 'JNKSN_STORAGE']
-                                                       + df_full_data.loc['1966-01-31', 'JNKSN_STORAGE']) / 2
+                                                        + df_full_data.loc['1966-01-31', 'JNKSN_STORAGE']) / 2
     # for JNKSN, create a copy of data with dropped WY1955
     df_full_data.rename(columns={'11332500': '11332500_v1'}, inplace=True)
     df_full_data["11332500_v2"] = df_full_data["11332500_v1"].copy()
@@ -201,11 +210,11 @@ if __name__ == "__main__":
     if b_replicate_sheets:
         print("Checking inputs to s-curve, part 1...")
         compare_two_df(df_full_data['11317000'].drop(df_full_data['11317000'].index[0]).round(2), df_sv_inputs['I_MFM008'], '11317000',
-                       'SV_INPUT_MFM008')                                                   # for MFM008
+                        'SV_INPUT_MFM008')                                                   # for MFM008
         compare_two_df(df_unimpaired_data['11335000_v1'], df_before_s['CMP001'], '11335000_v1',
-                       'before_s_CMP001')                                                   # for CMP001
+                        'before_s_CMP001')                                                   # for CMP001
         compare_two_df(df_unimpaired_data['11335000_v2'], df_before_s['CMP014'], '11335000_v2',
-                       'before_s_CMP014')                                                   # for CMP014
+                        'before_s_CMP014')                                                   # for CMP014
 
 
 
@@ -213,26 +222,27 @@ if __name__ == "__main__":
     # extend with the s-curve disaggregation, round 1
     extend_data(df_full_data['11317000'], df_full_data['11318500'],
                 df_extended_data, df_synthetic_data, 1934, i_final_year, False,
-                '11318500', i_final_year=i_final_year)                                              # see SFM005
+                '11318500', i_final_year=i_final_year, b_save_stats=False)                                              # see SFM005
     # for JNKSN, s-curve
     extend_data(df_unimpaired_data['11335000_v2'], df_full_data['11332500_v2'],
                 df_extended_data, df_synthetic_data, 1947, 1954, False,
-                '11332500', i_final_year=i_final_year)                                               # see JNKSN
+                '11332500', i_final_year=i_final_year,b_save_stats=b_save_stats)                                               # see JNKSN
     extend_data(df_unimpaired_data['11335000_v1'], df_unimpaired_data['11333000'],
                 df_extended_data, df_synthetic_data, 1956, 2004, False,
-                '11333000', i_final_year=i_final_year)                                               # see CMP001
+                '11333000', i_final_year=i_final_year,b_save_stats=b_save_stats)                                               # see CMP001
     extend_data(df_unimpaired_data['11335000_v2'], df_full_data['11331500'],
                 df_extended_data, df_synthetic_data, 1949, 1954, False,
-                '11331500', i_final_year=i_final_year)                                               # see CMP014
+                '11331500', i_final_year=i_final_year,b_save_stats=b_save_stats)                                               # see CMP014
     extend_data(df_unimpaired_data['11335000_v2'], df_full_data['11326300'],
                 df_extended_data, df_synthetic_data, 1961, 1970, False,
-                '11326300', i_final_year=i_final_year)                                               # see DSC035
+                '11326300', i_final_year=i_final_year,b_save_stats=b_save_stats)                                               # see DSC035
     extend_data(df_unimpaired_data['11335000_v2'], df_full_data['11327000_v2'],
                 df_extended_data, df_synthetic_data, 1961, 1980, False,
-                '11327000_v2', i_final_year=i_final_year)                                            # see DSC035
+                '11327000_v2', i_final_year=i_final_year,b_save_stats=b_save_stats)                                            # see DSC035
     extend_data(df_unimpaired_data['11335000_v2'], df_full_data['11335700'],
                 df_extended_data, df_synthetic_data, 1961, 1977, False,
-                '11335700', i_final_year=i_final_year, s_strange_sheet='DEE023')                     # see DEE023
+                '11335700', i_final_year=i_final_year, s_strange_sheet='DEE023',
+                b_save_stats=b_save_stats)                     # see DEE023
 
     # -----------------------------
     # --- UNIMPAIRMENT, ROUND 2 ---
@@ -265,19 +275,19 @@ if __name__ == "__main__":
                             df_full_data['11318500'], df_extended_data, df_synthetic_data,
                             1934, 2021, 1934, 2021, False, '11318500',
                             "Model A", "Model B", i_x_start_year=1922,
-                            i_final_year=2021, s_strange_sheet='')                                           # SFM005 A/B
+                            i_final_year=2021, s_strange_sheet='',b_save_stats=b_save_stats)                                           # SFM005 A/B
     extend_data(df_unimpaired_data['11319500_v1'], df_full_data['11315000'],
                df_extended_data, df_synthetic_data, 1928, i_final_year, False,
-               '11315000', i_x_start_year=1922, i_final_year=i_final_year, s_strange_sheet='COL003') # see COL003
+               '11315000', i_x_start_year=1922, i_final_year=i_final_year, s_strange_sheet='COL003',b_save_stats=b_save_stats) # see COL003
     extend_data(df_unimpaired_data['11319500_v1'], df_unimpaired_data['LBearSS_v1'],
                df_extended_data, df_synthetic_data, 1989, i_final_year, False,
-               'LBearSS_v1', i_final_year=i_final_year)                                              # see SLTSP
+               'LBearSS_v1', i_final_year=i_final_year,b_save_stats=b_save_stats)                                              # see SLTSP
     extend_data(df_unimpaired_data['11319500_v1'], df_unimpaired_data['LBearSS_v2'],
                 df_extended_data, df_synthetic_data, 1989, i_final_year, False,
-                'LBearSS_v2', i_final_year=i_final_year)                                             # see UBEAR
+                'LBearSS_v2', i_final_year=i_final_year,b_save_stats=b_save_stats)                                             # see UBEAR
     extend_data(df_unimpaired_data['11319500_v1'], df_unimpaired_data['11316600'],
                 df_extended_data, df_synthetic_data, 1986, i_y_end_year=2001,
-                b_use_all_y_data=False, s_name='11316600', i_final_year=i_final_year)                       # see NFM010
+                b_use_all_y_data=False, s_name='11316600', i_final_year=i_final_year,b_save_stats=b_save_stats)                       # see NFM010
 
     # -------------------------------
     # --- FILL DATA AFTER S-CURVE ---
