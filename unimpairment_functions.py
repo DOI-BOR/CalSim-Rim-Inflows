@@ -1888,6 +1888,58 @@ def unimpaired_11414250(df_full_gauge_data):
     )
 
 
+def unimpaired_11417500(df_full_gauge_data):
+    """
+     Calculate the unimpaired flow for 11417500 S YUBA R A JONES BAR NR GRASS VALLEY CA
+     Follows the logic from CS3_I_SPLDG_Rev2022G.xlsm
+
+     Parameters
+     ----------
+     df_full_gauge_data: dataframe
+       Gauge data that contains the current station and all needed to unimpair the flows. In TAF. This is full dataset
+     Returns
+     -------
+     df_unimpaired: dataframe
+         Unpaired flow for current station
+     """
+    df_temp = df_full_gauge_data["11408000"].clip(lower=0)
+    # TODO
+    # Excel sheet for NFY007 does not have data for this station for WY 2021
+    df_temp.loc["2020-10":] = 0
+    df_unimpaired = unimpaired_flows(
+        df_full_gauge_data["11417500"],
+        fl_additions = [
+            df_full_gauge_data["11414170"].clip(lower=0).fillna(0),
+            df_full_gauge_data["11414200"].clip(lower=0).fillna(0),
+            df_full_gauge_data["EXCELSIOR_DITCH"].clip(lower=0).fillna(0),
+            df_full_gauge_data["BOWMN_evap"].clip(lower=0).fillna(0),
+            df_full_gauge_data["FRDYC_evap"].clip(lower=0).fillna(0),
+            df_full_gauge_data["SPLDG_evap"].clip(lower=0).fillna(0),
+            df_full_gauge_data["FRNCH_evap"].clip(lower=0).fillna(0),
+        ],
+        fl_storages = [
+            df_full_gauge_data["11415500"].fillna(0),
+            df_full_gauge_data["11414400"].fillna(0),
+            df_full_gauge_data["11414440"].fillna(0),
+            df_full_gauge_data["11414465"].fillna(0),
+            df_full_gauge_data["11414090_I_SFY007"].fillna(0),
+            df_full_gauge_data["11414140"].fillna(0),
+        ],
+        fl_subtractions = [
+            df_temp,
+        ]
+    )
+    # TODO this replicates the excel behaviour, but it is better to
+    # not do fillna and let NA values propagate natually for these
+    # timeseries
+    df_unimpaired.loc[
+        df_full_gauge_data["11417500"].isna()
+        | df_full_gauge_data["11415500"].isna()
+        | df_full_gauge_data["11414090_I_SFY007"].isna()
+        | df_full_gauge_data["11414140"].isna()
+    ] = pd.NA
+    return df_unimpaired
+
 def unimpaired_FERC():
     """
      Calculate the unimpaired flow using I_LCBRF sheet for Texas, Fall, and Rucker Creeks

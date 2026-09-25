@@ -60,6 +60,7 @@ if __name__ == "__main__":
     df_unimpaired_data['11390000'] = df_full_data['11390000'] - df_full_data['11389800']
     df_unimpaired_data['11414250'] = unimpaired_11414250(df_full_data)
     df_unimpaired_data['FERC'] = unimpaired_FERC()
+    df_unimpaired_data['11417500'] = unimpaired_11417500(df_full_data)
 
     # drop the first row used for storage
     df_unimpaired_data = df_unimpaired_data.loc[ti_calculate_range,:]
@@ -126,6 +127,7 @@ if __name__ == "__main__":
     extend_data(df_rim_inflows["I_NFY029"], df_pos_unimpaired_data["11416500"], df_extended_data, df_synthetic_data, 1928, i_final_year, False, '11416500', i_x_start_year=1922, i_final_year=i_final_year)
     
     extend_data(df_rim_inflows["I_NFY029"], df_unimpaired_data["11407900"], df_extended_data, df_synthetic_data, 1936, i_final_year, False, '11407900', i_x_start_year=1922, i_final_year=i_final_year, s_strange_sheet="JKSMD")
+    extend_data(df_rim_inflows.loc[:, "I_NFY029"], df_unimpaired_data['11417500'], df_extended_data, df_synthetic_data, 1960, i_final_year, False, '11417500', i_x_start_year=1922, i_final_year=2021)
 
     # needed for MERLC_MODELA
     df_pos_extended_data = remove_negatives_timeseries(df_extended_data)
@@ -161,6 +163,7 @@ if __name__ == "__main__":
     I_SPLDG(df_extended_data, df_unimpaired_data, df_rim_inflows)
     I_LCBRF(df_extended_data, df_unimpaired_data, df_rim_inflows)
 
+    I_SFY007(df_extended_data, df_rim_inflows)
     # We have one extra date at the beginning for storage
     df_rim_inflows = df_rim_inflows.loc[ti_calculate_range]
     df_rim_inflows.to_csv('./Outputs/feather_yuba_rim_inflows.csv')
