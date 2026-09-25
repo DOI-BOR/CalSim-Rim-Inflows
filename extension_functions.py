@@ -206,6 +206,14 @@ def s_curve_disaggregation(df_x_data, df_y_data, i_x_start_year, i_x_end_year, i
     # do the reverse of a cumulative sum to get the scaled version of df_x_data
     df_y_data_synthetic = pd.DataFrame(np.diff(df_y_cumulative_totals, prepend=0), index=df_x_data.index, columns=df_x_data.columns)
 
+    # TODO HACK
+    if s_strange_sheet == "MERLC_MODELB":
+        # the calculation is outdated, so we overwrite it with the previous results
+        df_y_data_synthetic = pd.read_csv("./Inputs/I_MERLC-MODELB.csv", index_col="Water Year")
+    elif s_strange_sheet == "SPLDG_MODELC":
+        # the calculation is outdated, so we overwrite it with the previous results
+        df_y_data_synthetic = pd.read_csv("./Inputs/I_SPLDG-MODELC.csv", index_col="Water Year")
+
     # put the range of original y to keep back in
     df_y_data_output = df_y_data_synthetic.copy()
 

@@ -1165,3 +1165,70 @@ def calc_evap_CMPFW(s_dss_file, df_storage_data, s_data_suffix=""):
         b_set_zeros=True
     )
 
+
+def calc_evap_MERLC(s_dss_file, df_storage_data):
+    """
+    Calculate the evaporation amount for Lake Merle. Follows the logic in CS3_I_MERLC_Rev2022G. Updated to WY21 using calibrated evaporation rate ER_MERLC from 'CS3_ER_MERLC_rev1.xls
+
+    Parameters
+    ----------
+    s_dss_file: str
+        Path to DSS file with evaporation rates
+    df_storage_data: dataframe
+        Storage data containing the reservoir
+
+    Returns
+    -------
+    None
+    """
+
+    # get the evap rates from the dss file
+    df_evap_rates = read_evap_data(s_dss_file, 'ER_MERLC')
+    # get the storage for Lake Merle
+    df_stor_MCollins = df_storage_data.loc[:, "LAKE_MERLE"]
+
+    # TODO: do we need to run the curve filling here?
+    # equation comes from excel
+    # y = -0.00226x2 + 16.80972x - 1.51461
+    df_evap_MCollins = (-0.00226 * df_stor_MCollins.pow(2) + 16.80972 * df_stor_MCollins - 1.51461) * df_evap_rates.loc[:, "IN"] / 12 / 1000
+    df_storage_data.loc[:, f'MERLC_evap'] = df_evap_MCollins
+
+
+def calc_evap_SPLDG(s_dss_file, df_storage_data):
+    """
+    Calculate the evaporation amount for Spaulding Lake. Follows the logic in CS3_I_CMBIE_Rev2022G. Updated to WY21 using calibrated evaporation rate ER_SPLDG from 'CS3_ER_SPLDG_rev1.xls
+
+    Parameters
+    ----------
+    s_dss_file: str
+        Path to DSS file with evaporation rates
+    df_storage_data: dataframe
+        Storage data containing the reservoir
+
+    Returns
+    -------
+    None
+    """
+
+    # get the evap rates from the dss file
+    df_evap_rates = read_evap_data(s_dss_file, 'ER_SPLDG')
+
+    # read in the area capacity table
+    df_area_capacity = pd.read_csv(r"./Area Capacities/SPLDG_AC.csv")
+    df_area_capacity['TAF'] = df_area_capacity['Capacity (acre-feet)'] / 1000
+    df_area_capacity['Elevation'] = (df_area_capacity['Elevation (ft)'] + df_area_capacity['Elevation (ft)'].shift(1)) / 2
+    df_area_capacity['Capacity'] = (df_area_capacity['TAF'] + df_area_capacity['TAF'].shift(1)) / 2
+    df_area_capacity.iloc[0, :] = df_area_capacity.iloc[0].fillna(0)
+    df_area_capacity['Area'] = (df_area_capacity['Capacity (acre-feet)'].shift(1) - df_area_capacity['Capacity (acre-feet)']) / (
+                df_area_capacity['Elevation (ft)'].shift(1) - df_area_capacity['Elevation (ft)'])
+    df_area_capacity.iloc[0, :] = df_area_capacity.iloc[0].fillna(0)
+
+    # this one has different formula than others in the table
+    df_area_capacity.loc[1, "Area"] = 20
+    df_area_capacity["Area"] = df_area_capacity["Area"].cummax()
+    df_storage_data.loc[:, f'SPLDG_evap'] = calculate_evap_data(
+        df_storage_data.loc[:, "11414140"],
+        df_evap_rates,
+        df_area_capacity[['Capacity', 'Area']],
+        b_set_zeros=True
+    )
