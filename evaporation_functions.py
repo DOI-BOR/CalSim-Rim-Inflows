@@ -1168,7 +1168,7 @@ def calc_evap_CMPFW(s_dss_file, df_storage_data, s_data_suffix=""):
 
 def calc_evap_MERLC(s_dss_file, df_storage_data):
     """
-    Calculate the evaporation amount for Lake Merle. Follows the logic in CS3_I_MERLC_Rev2022G. Updated to WY21 using calibrated evaporation rate ER_MERLC from 'CS3_ER_MERLC_rev1.xls
+    Calculate the evaporation amount for Lake Merle Collins. Follows the logic in CS3_I_MERLC_Rev2022G. Updated to WY21 using calibrated evaporation rate ER_MERLC from 'CS3_ER_MERLC_rev1.xls
 
     Parameters
     ----------
