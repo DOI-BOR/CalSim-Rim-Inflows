@@ -43,6 +43,9 @@ if __name__ == "__main__":
     calc_evap_CMPFW(s_evap_dss_path, df_full_data, s_data_suffix="_I_RLLNS")
     calc_evap_MERLC(s_evap_dss_path, df_full_data)
     calc_evap_SPLDG(s_evap_dss_path, df_full_data)
+    # calc_evap_NBLDB(s_evap_dss_path, df_full_data)
+    # calc_evap_OBLDB(s_evap_dss_path, df_full_data)
+    # calc_evap_ENGLB(s_evap_dss_path, df_full_data)
 
     df_full_data.to_csv('./Intermediate/feather_yuba_full_gauge_data_wevap.csv')
 
@@ -61,6 +64,7 @@ if __name__ == "__main__":
     df_unimpaired_data['11414250'] = unimpaired_11414250(df_full_data)
     df_unimpaired_data['FERC'] = unimpaired_FERC()
     df_unimpaired_data['11417500'] = unimpaired_11417500(df_full_data)
+    # df_unimpaired_data['11418000'] = unimpaired_11418000(df_full_data)
 
     # drop the first row used for storage
     df_unimpaired_data = df_unimpaired_data.loc[ti_calculate_range,:]
@@ -110,6 +114,7 @@ if __name__ == "__main__":
     extend_data(df_rim_inflows["I_NFY029"], df_full_data.loc[:, "WILSON_CREEK"], df_extended_data, df_synthetic_data, 1976, 2004, False, 'WILSON_CREEK', i_x_start_year=1922, i_final_year=i_final_year)
     extend_data(df_unimpaired_data['11390000'], df_pos_unimpaired_data['MERLC'], df_extended_data, df_synthetic_data, 1968, 1980, False, 'MERLC_MODELA', i_final_year=i_final_year)
     extend_data(df_rim_inflows["I_OGN005"], df_pos_unimpaired_data['MERLC'], df_extended_data, df_synthetic_data, 1968, 1980, False, 'MERLC_MODELB', i_final_year=i_final_year, s_strange_sheet="MERLC_MODELB")
+    # extend_data(df_rim_inflows["I_NFY029"], df_unimpaired_data.loc[:, "11418000"], df_extended_data, df_synthetic_data, 1936, 2021, False, '11418000', i_x_start_year=1922, i_final_year=i_final_year)
 
     
     # these two unimpaired depend on WILSON CREEK
@@ -164,6 +169,8 @@ if __name__ == "__main__":
     I_LCBRF(df_extended_data, df_unimpaired_data, df_rim_inflows)
 
     I_SFY007(df_extended_data, df_rim_inflows)
+    # I_ENGLB(df_extended_data, df_rim_inflows)
+    
     # We have one extra date at the beginning for storage
     df_rim_inflows = df_rim_inflows.loc[ti_calculate_range]
     df_rim_inflows.to_csv('./Outputs/feather_yuba_rim_inflows.csv')

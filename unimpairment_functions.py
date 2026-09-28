@@ -1940,6 +1940,54 @@ def unimpaired_11417500(df_full_gauge_data):
     ] = pd.NA
     return df_unimpaired
 
+
+def unimpaired_11418000(df_full_gauge_data):
+    """
+     Calculate the unimpaired flow for 11418000 YUBA R BL ENGLEBRIGHT DAM NR SMARTVILLE CA
+     Follows the logic from CS3_I_ENGLB_Rev2022G.xlsm
+
+     Parameters
+     ----------
+     df_full_gauge_data: dataframe
+       Gauge data that contains the current station and all needed to unimpair the flows. In TAF. This is full dataset
+     Returns
+     -------
+     df_unimpaired: dataframe
+         Unpaired flow for current station
+     """
+    df_unimpaired = unimpaired_flows(
+        df_full_gauge_data["11418000"],
+        fl_additions = [
+            df_full_gauge_data["11414200"].clip(lower=0).fillna(0),
+            df_full_gauge_data["11414170"].clip(lower=0).fillna(0),
+            df_full_gauge_data["11413250"].clip(lower=0).fillna(0),
+            df_full_gauge_data["BVID_DIVERSION"].clip(lower=0).fillna(0),
+            df_full_gauge_data["NBLDB_evap"].clip(lower=0).fillna(0),
+            df_full_gauge_data["OBLDB_evap"].clip(lower=0).fillna(0),
+            df_full_gauge_data["JKSMD_evap"].clip(lower=0).fillna(0),
+            df_full_gauge_data["FRNCH_evap"].clip(lower=0).fillna(0),
+            df_full_gauge_data["BOWMN_evap"].clip(lower=0).fillna(0),
+            df_full_gauge_data["FRDYC_evap"].clip(lower=0).fillna(0),
+            df_full_gauge_data["SPLDG_evap"].clip(lower=0).fillna(0),
+            df_full_gauge_data["ENGLB_evap"].clip(lower=0).fillna(0),
+        ],
+        fl_storages = [
+            df_full_gauge_data["11413515"].fillna(0),
+            df_full_gauge_data["OLD_BULLARDS_BAR"].fillna(0),
+            df_full_gauge_data["11407800_I_ENGLB"].fillna(0),
+            df_full_gauge_data["11414400"].fillna(0),
+            df_full_gauge_data["11414465_I_ENGLB"].fillna(0),
+            df_full_gauge_data["11414440_I_ENGLB"].fillna(0),
+            df_full_gauge_data["11415500"].fillna(0),
+            df_full_gauge_data["11414090_I_ENGLB"].fillna(0),
+            df_full_gauge_data["11414140_I_ENGLB"].fillna(0),
+            df_full_gauge_data["ENGLEBRIGHT_DAM"].fillna(0),
+        ],
+    )
+    return df_unimpaired
+
+
+
 def unimpaired_FERC():
     """Calculate the unimpaired flow using I_LCBRF sheet for Texas, Fall, and Rucker Creeks
      Follows the logic from CS3_I_LCBRF_Rev2022G.xlsm
