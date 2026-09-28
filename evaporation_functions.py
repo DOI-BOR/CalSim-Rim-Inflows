@@ -1196,7 +1196,7 @@ def calc_evap_MERLC(s_dss_file, df_storage_data):
 
 def calc_evap_SPLDG(s_dss_file, df_storage_data):
     """
-    Calculate the evaporation amount for Spaulding Lake. Follows the logic in CS3_I_CMBIE_Rev2022G. Updated to WY21 using calibrated evaporation rate ER_SPLDG from 'CS3_ER_SPLDG_rev1.xls
+    Calculate the evaporation amount for Lake Spaulding. Follows the logic in CS3_I_CMBIE_Rev2022G. Updated to WY21 using calibrated evaporation rate ER_SPLDG from 'CS3_ER_SPLDG_rev1.xls
 
     Parameters
     ----------

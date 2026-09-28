@@ -1816,7 +1816,7 @@ def unimpaired_11424000_ACC(df_full_gauge_data, df_rim_inflows):
 
 def unimpaired_MERLC(df_full_gauge_data):
     """
-     Calculate the unimpaired flow for MCollins Lake
+     Calculate the unimpaired flow for Lake Merle Collins
      Follows the logic from CS3_I_MERLC_Rev2022G.xlsm
 
      Parameters
@@ -1941,9 +1941,16 @@ def unimpaired_11417500(df_full_gauge_data):
     return df_unimpaired
 
 def unimpaired_FERC():
-    """
-     Calculate the unimpaired flow using I_LCBRF sheet for Texas, Fall, and Rucker Creeks
+    """Calculate the unimpaired flow using I_LCBRF sheet for Texas, Fall, and Rucker Creeks
      Follows the logic from CS3_I_LCBRF_Rev2022G.xlsm
+
+    This unimpaired flow calculation is inconsistent to other
+    unimpaired calculations. The flow is calculated as monthly mean
+    from daily timeseries. The daily timeseries is calculated as sum
+    of many tributaries which are in turn calculated based on the
+    precipitation data obtained from external sources. Refer to the
+    excel sheet for more details. The FERC factors and unit hydrology
+    used in excel is loaded as CSVs.
 
      Parameters
      ----------
@@ -1951,7 +1958,8 @@ def unimpaired_FERC():
      -------
      df_unimpaired: dataframe
          Unpaired flow for current station
-     """
+
+    """
     # NOTE: This one is different than anything else
     df_ferc_factors = pd.read_csv("./Inputs/FERC-Factors.csv", index_col="Location")
     df_ferc_hydrology = pd.read_csv("./Inputs/FERC-Unit-Hydrology.csv")
@@ -1977,7 +1985,7 @@ def unimpaired_FERC():
     df_total = df_selection.loc[:, "Precip\nor\nGage volume differences"]
 
     def calculate_daily_flow(df_row):
-        # this logic comes from the FERC Daily Hydrology sheet
+        # this logic comes from the FERC Daily Hydrology sheet in CS3_I_LCBRF_Rev2022G.xlsm
         df_flow_calcs = (df_row * df_factors).T.sum() * df_total
         sl_extra = [
             "Rucker Creek above SYR", "Trap Creek above Fall Creek",
