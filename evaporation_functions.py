@@ -105,7 +105,13 @@ def calculate_evap_data(df_storage_data, df_evap_rates, df_area_capacity, b_set_
             df_evaporation_data.loc[index, 'TAF'] = 0
 
         else:
-            # linearly interpolate the capacities to get the area value for the current capacity. units are acres here
+            # linearly interpolate the capacities to get the area
+            # value for the current capacity. units are acres here
+
+            # TODO: from numpy This returns fp[-1] for x > xp[-1],
+            # which means it does not extrapolate outside range, but
+            # exce FORECAST function does, we might have to change it
+            # to make it the same
             d_pred_area = np.interp(row['Averages'], df_area_capacity['Capacity'], df_area_capacity['Area'])
 
             # multiply by the evap rate
@@ -809,3 +815,420 @@ def calc_evap_JNKSN(s_dss_file, df_storage_data):
     # calculate and set the evaporation
     df_storage_data['JNKSN_evap'] = calculate_evap_data(df_storage_data['JNKSN_STORAGE'], df_evap_rates,
                                                         df_area_capacity[['Capacity', 'Area']], True)
+
+
+def calc_evap_JKSMD_I_NFY029(s_dss_file, df_storage_data):
+    """
+    Calculate the evaporation amount for Jackson Meadows Reservoir. Follows the logic in CS3_I_NFY029_Rev2022G. Updated to WY21 using calibrated evaporation rate ER_JKSMD from 'CS3_ER_JKSMD_rev1.xls
+
+    Parameters
+    ----------
+    s_dss_file: str
+        Path to DSS file with evaporation rates
+    df_storage_data: dataframe
+        Storage data containing the reservoir
+
+    Returns
+    -------
+    None
+    """
+
+    # get the evap rates from the dss file
+    df_evap_rates = read_evap_data(s_dss_file, 'ER_JKSMD')
+
+    # read in the area capacity table
+    df_area_capacity = pd.read_csv(r"./Area Capacities/JKSMD_AC_I_NFY029.csv")
+
+    # get the TAF capacity
+    df_area_capacity['TAF'] = df_area_capacity['Capacity (acre-feet)'] / 1000
+
+    # the sheet gets the averages for each neighboring set of points and uses those
+    df_area_capacity['Elevation'] = (df_area_capacity['Elevation (ft)'] + df_area_capacity['Elevation (ft)'].shift(1)) / 2
+    df_area_capacity['Capacity'] = (df_area_capacity['TAF'] + df_area_capacity['TAF'].shift(1)) / 2
+
+    # fill NAs with zero as the sheet does, this will populate the first row
+    df_area_capacity.iloc[0, :] = df_area_capacity.iloc[0].fillna(0)
+
+    # area = diff in capacity/ diff in elevation (ac-ft/ft=ac)
+    df_area_capacity['Area'] = (
+        df_area_capacity['Capacity (acre-feet)'].shift(1) - df_area_capacity['Capacity (acre-feet)']
+    ) / (
+        df_area_capacity['Elevation (ft)'].shift(1) - df_area_capacity['Elevation (ft)']
+    )
+
+    # again fill first row (lowest elevation) with zeros
+    df_area_capacity.iloc[0, :] = df_area_capacity.iloc[0].fillna(0)
+
+    # make sure none of the areas are above a maximum of 938
+    df_area_capacity.loc[df_area_capacity['Area'] > 938, 'Area'] = 938
+
+    # make sure the areas are monotonically increasing
+    df_area_capacity["Area"] = df_area_capacity["Area"].cummax()
+
+    # add a row for the maximum
+    df_area_capacity.loc[len(df_area_capacity), ['Capacity', 'Area']] = [71.0, 938]
+
+    # calculate and set the evaporation
+    df_storage_data['JKSMD_evap_I_NFY029'] = calculate_evap_data(df_storage_data.loc[:, "11407800_I_NFY029"], df_evap_rates, df_area_capacity[['Capacity', 'Area']], b_set_zeros=True)
+
+
+def calc_evap_JKSMD(s_dss_file, df_storage_data):
+    """
+    Calculate the evaporation amount for Jackson Meadows Reservoir. Follows the logic in CS3_I_JKSMD_Rev2022G. Updated to WY21 using calibrated evaporation rate ER_JKSMD from 'CS3_ER_JKSMD_rev1.xls
+
+    Parameters
+    ----------
+    s_dss_file: str
+        Path to DSS file with evaporation rates
+    df_storage_data: dataframe
+        Storage data containing the reservoir
+
+    Returns
+    -------
+    None
+    """
+
+    # get the evap rates from the dss file
+    df_evap_rates = read_evap_data(s_dss_file, 'ER_JKSMD')
+
+    # read in the area capacity table
+    df_area_capacity = pd.read_csv(r"./Area Capacities/JKSMD_AC.csv")
+
+    # the sheet already has TAF
+    df_area_capacity['Elevation'] = df_area_capacity['Elevation (ft)']
+    df_area_capacity['Capacity'] = df_area_capacity['Storage (TAF)']
+
+    # fill NAs with zero as the sheet does, this will populate the first row
+    df_area_capacity.iloc[0, :] = df_area_capacity.iloc[0].fillna(0)
+
+    # area already available
+    df_area_capacity['Area'] = df_area_capacity['Area (acres)']
+
+    # again fill first row (lowest elevation) with zeros
+    df_area_capacity.iloc[0, :] = df_area_capacity.iloc[0].fillna(0)
+
+    # make sure the areas are monotonically increasing
+    df_area_capacity["Area"] = df_area_capacity["Area"].cummax()
+
+    # calculate and set the evaporation
+    df_storage_data['JKSMD_evap'] = calculate_evap_data(df_storage_data.loc[:, "11407800"], df_evap_rates, df_area_capacity[['Capacity', 'Area']], b_set_zeros=True)
+
+
+def calc_evap_BOWMN(s_dss_file, df_storage_data):
+    """
+    Calculate the evaporation amount for Bowman Lake. Follows the logic in CS3_I_BOWMN_Rev2022G. Updated to WY21 using calibrated evaporation rate ER_BOWMN from 'CS3_ER_BOWMN_rev1.xls
+
+    Parameters
+    ----------
+    s_dss_file: str
+        Path to DSS file with evaporation rates
+    df_storage_data: dataframe
+        Storage data containing the reservoir
+
+    Returns
+    -------
+    None
+    """
+
+    # get the evap rates from the dss file
+    df_evap_rates = read_evap_data(s_dss_file, 'ER_BOWMN')
+
+    # read in the area capacity table
+    df_area_capacity = pd.read_csv(r"./Area Capacities/BOWMN_AC.csv")
+
+    # the sheet already has TAF
+    df_area_capacity['Elevation'] = df_area_capacity['Elevation (ft)']
+    df_area_capacity['Capacity'] = df_area_capacity['Storage (TAF)']
+
+    # fill NAs with zero as the sheet does, this will populate the first row
+    df_area_capacity.iloc[0, :] = df_area_capacity.iloc[0].fillna(0)
+
+    # area already available
+    df_area_capacity['Area'] = df_area_capacity['Area (acres)']
+
+    # again fill first row (lowest elevation) with zeros
+    df_area_capacity.iloc[0, :] = df_area_capacity.iloc[0].fillna(0)
+
+    # make sure the areas are monotonically increasing
+    df_area_capacity["Area"] = df_area_capacity["Area"].cummax()
+
+    # calculate and set the evaporation
+    df_storage_data['BOWMN_evap'] = calculate_evap_data(df_storage_data.loc[:, "11415500"], df_evap_rates, df_area_capacity[['Capacity', 'Area']], b_set_zeros=True)
+
+
+def calc_evap_FRNCH(s_dss_file, df_storage_data):
+    """
+    Calculate the evaporation amount for French Lake. Follows the logic in CS3_I_BOWMN_Rev2022G. Updated to WY21 using calibrated evaporation rate ER_FRNCH from 'CS3_ER_FRNCH_rev1.xls
+
+    Parameters
+    ----------
+    s_dss_file: str
+        Path to DSS file with evaporation rates
+    df_storage_data: dataframe
+        Storage data containing the reservoir
+
+    Returns
+    -------
+    None
+    """
+
+    # get the evap rates from the dss file
+    df_evap_rates = read_evap_data(s_dss_file, 'ER_FRNCH')
+
+    # read in the area capacity table
+    df_area_capacity = pd.read_csv(r"./Area Capacities/FRNCH_AC.csv")
+
+    # the sheet already has TAF
+    df_area_capacity['Elevation'] = df_area_capacity['Elevation (ft)']
+    df_area_capacity['Capacity'] = df_area_capacity['Storage (TAF)']
+
+    # fill NAs with zero as the sheet does, this will populate the first row
+    df_area_capacity.iloc[0, :] = df_area_capacity.iloc[0].fillna(0)
+
+    # area already available
+    df_area_capacity['Area'] = df_area_capacity['Area (acres)']
+
+    # again fill first row (lowest elevation) with zeros
+    df_area_capacity.iloc[0, :] = df_area_capacity.iloc[0].fillna(0)
+
+    # make sure the areas are monotonically increasing
+    df_area_capacity["Area"] = df_area_capacity["Area"].cummax()
+
+    # calculate and set the evaporation
+    df_storage_data['FRNCH_evap'] = calculate_evap_data(df_storage_data.loc[:, "11414400_I_FRNCH"], df_evap_rates, df_area_capacity[['Capacity', 'Area']], b_set_zeros=True)
+
+
+def calc_evap_FRDYC(s_dss_file, df_storage_data):
+    """
+    Calculate the evaporation amount for Fordyce Lake. Follows the logic in CS3_I_FRDYC_Rev2022G. Updated to WY21 using calibrated evaporation rate ER_FRDYC from 'CS3_ER_FRDYC_rev1.xls
+
+    Parameters
+    ----------
+    s_dss_file: str
+        Path to DSS file with evaporation rates
+    df_storage_data: dataframe
+        Storage data containing the reservoir
+
+    Returns
+    -------
+    None
+    """
+
+    # get the evap rates from the dss file
+    df_evap_rates = read_evap_data(s_dss_file, 'ER_FRDYC')
+
+    # read in the area capacity table
+    df_area_capacity = pd.read_csv(r"./Area Capacities/FRDYC_AC.csv")
+
+    # the sheet already has TAF
+    df_area_capacity['Elevation'] = df_area_capacity['Elevation (ft)']
+    df_area_capacity['Capacity'] = df_area_capacity['Storage (TAF)']
+
+    # fill NAs with zero as the sheet does, this will populate the first row
+    df_area_capacity.iloc[0, :] = df_area_capacity.iloc[0].fillna(0)
+
+    # area already available
+    df_area_capacity['Area'] = df_area_capacity['Area (acres)']
+
+    # again fill first row (lowest elevation) with zeros
+    df_area_capacity.iloc[0, :] = df_area_capacity.iloc[0].fillna(0)
+
+    # make sure the areas are monotonically increasing
+    df_area_capacity["Area"] = df_area_capacity["Area"].cummax()
+
+    # calculate and set the evaporation
+    df_storage_data['FRDYC_evap'] = calculate_evap_data(df_storage_data.loc[:, "11414090"], df_evap_rates, df_area_capacity[['Capacity', 'Area']], b_set_zeros=True)
+
+
+def calc_evap_RLLNS(s_dss_file, df_storage_data, s_data_suffix=""):
+    """
+    Calculate the evaporation amount for Rollins Reservoir. Follows the logic in CS3_I_RLLNS_Rev2022G. Updated to WY21 using calibrated evaporation rate ER_RLLNS from 'CS3_ER_RLLNS_rev1.xls
+
+    Parameters
+    ----------
+    s_dss_file: str
+        Path to DSS file with evaporation rates
+    df_storage_data: dataframe
+        Storage data containing the reservoir
+    s_data_suffix: str
+        Suffix to add while accessing data (if there is duplicate data for the storage)
+
+    Returns
+    -------
+    None
+    """
+
+    # get the evap rates from the dss file
+    df_evap_rates = read_evap_data(s_dss_file, 'ER_RLLNS')
+
+    # read in the area capacity table
+    df_area_capacity = pd.read_csv(r"./Area Capacities/RLLNS_AC.csv")
+    df_area_capacity['TAF'] = df_area_capacity['Capacity (acre-feet)'] / 1000
+    df_area_capacity['Elevation'] = (df_area_capacity['Elevation (ft)'] + df_area_capacity['Elevation (ft)'].shift(1)) / 2
+    df_area_capacity['Capacity'] = (df_area_capacity['TAF'] + df_area_capacity['TAF'].shift(1)) / 2
+    df_area_capacity.iloc[0, :] = df_area_capacity.iloc[0].fillna(0)
+    df_area_capacity['Area'] = (df_area_capacity['Capacity (acre-feet)'].shift(1) - df_area_capacity['Capacity (acre-feet)']) / (
+                df_area_capacity['Elevation (ft)'].shift(1) - df_area_capacity['Elevation (ft)'])
+    df_area_capacity.iloc[0, :] = df_area_capacity.iloc[0].fillna(0)
+
+    df_area_capacity["Area"] = df_area_capacity["Area"].cummax()
+    df_storage_data.loc[:, f'RLLNS_evap{s_data_suffix}'] = calculate_evap_data(
+        df_storage_data.loc[:, f"11421800{s_data_suffix}"],
+        df_evap_rates,
+        df_area_capacity[['Capacity', 'Area']],
+        b_set_zeros=True
+    )
+
+
+def calc_evap_CMBIE(s_dss_file, df_storage_data, s_data_suffix=""):
+    """
+    Calculate the evaporation amount for Combie Reservoir. Follows the logic in CS3_I_CMBIE_Rev2022G. Updated to WY21 using calibrated evaporation rate ER_CMBIE from 'CS3_ER_CMBIE_rev1.xls
+
+    Parameters
+    ----------
+    s_dss_file: str
+        Path to DSS file with evaporation rates
+    df_storage_data: dataframe
+        Storage data containing the reservoir
+    s_data_suffix: str
+        Suffix to add while accessing data (if there is duplicate data for the storage)
+
+    Returns
+    -------
+    None
+    """
+
+    # get the evap rates from the dss file
+    df_evap_rates = read_evap_data(s_dss_file, 'ER_CMBIE')
+
+    # read in the area capacity table
+    df_area_capacity = pd.read_csv(r"./Area Capacities/CMBIE_AC.csv")
+    df_area_capacity['TAF'] = df_area_capacity['Capacity (acre-feet)'] / 1000
+    df_area_capacity['Elevation'] = (df_area_capacity['Elevation (ft)'] + df_area_capacity['Elevation (ft)'].shift(1)) / 2
+    df_area_capacity['Capacity'] = (df_area_capacity['TAF'] + df_area_capacity['TAF'].shift(1)) / 2
+    df_area_capacity.iloc[0, :] = df_area_capacity.iloc[0].fillna(0)
+    df_area_capacity['Area'] = (df_area_capacity['Capacity (acre-feet)'].shift(1) - df_area_capacity['Capacity (acre-feet)']) / (
+                df_area_capacity['Elevation (ft)'].shift(1) - df_area_capacity['Elevation (ft)'])
+    df_area_capacity.iloc[0, :] = df_area_capacity.iloc[0].fillna(0)
+    df_area_capacity.loc[len(df_area_capacity), ['Capacity', 'Area']] = [5.555, 360]
+    # calculate_Evap_data function uses np.interp which can only
+    # interpolate between the min and max, because the observed values
+    # goes beyond 5.555, adding this row here for extrapolation using the
+    # last 2 rows like excel
+    df_area_capacity.loc[len(df_area_capacity), ['Capacity', 'Area']] = [9, 635.7075]
+    df_area_capacity["Area"] = df_area_capacity["Area"].cummax()
+    df_storage_data.loc[:, f'CMBIE_evap{s_data_suffix}'] = calculate_evap_data(
+        df_storage_data.loc[:, f"LAKE_COMBIE{s_data_suffix}"],
+        df_evap_rates,
+        df_area_capacity[['Capacity', 'Area']],
+        b_set_zeros=False
+    )
+
+
+def calc_evap_CMPFW(s_dss_file, df_storage_data, s_data_suffix=""):
+    """
+    Calculate the evaporation amount for Camp Far West Reservoir. Follows the logic in CS3_I_CMBIE_Rev2022G. Updated to WY21 using calibrated evaporation rate ER_CMPFW from 'CS3_ER_CMPFW_rev1.xls
+
+    Parameters
+    ----------
+    s_dss_file: str
+        Path to DSS file with evaporation rates
+    df_storage_data: dataframe
+        Storage data containing the reservoir
+    s_data_suffix: str
+        Suffix to add while accessing data (if there is duplicate data for the storage)
+
+    Returns
+    -------
+    None
+    """
+
+    # get the evap rates from the dss file
+    df_evap_rates = read_evap_data(s_dss_file, 'ER_CMPFW')
+
+    # read in the area capacity table
+    df_area_capacity = pd.read_csv(r"./Area Capacities/CMPFW_AC.csv")
+    df_area_capacity['TAF'] = df_area_capacity['Capacity (acre-feet)'] / 1000
+    df_area_capacity['Elevation'] = (df_area_capacity['Elevation (ft)'] + df_area_capacity['Elevation (ft)'].shift(1)) / 2
+    df_area_capacity['Capacity'] = (df_area_capacity['TAF'] + df_area_capacity['TAF'].shift(1)) / 2
+    df_area_capacity.iloc[0, :] = df_area_capacity.iloc[0].fillna(0)
+    df_area_capacity['Area'] = (df_area_capacity['Capacity (acre-feet)'].shift(1) - df_area_capacity['Capacity (acre-feet)']) / (
+                df_area_capacity['Elevation (ft)'].shift(1) - df_area_capacity['Elevation (ft)'])
+    df_area_capacity.iloc[0, :] = df_area_capacity.iloc[0].fillna(0)
+
+    df_area_capacity.loc[len(df_area_capacity)-1, ['Capacity', 'Area']] = [125.0, 2050]
+    df_area_capacity["Area"] = df_area_capacity["Area"].cummax()
+    df_storage_data.loc[:, f'CMPFW_evap{s_data_suffix}'] = calculate_evap_data(
+        df_storage_data.loc[:, f"CAMP_FAR{s_data_suffix}"],
+        df_evap_rates,
+        df_area_capacity[['Capacity', 'Area']],
+        b_set_zeros=True
+    )
+
+
+def calc_evap_MERLC(s_dss_file, df_storage_data):
+    """
+    Calculate the evaporation amount for Lake Merle Collins. Follows the logic in CS3_I_MERLC_Rev2022G. Updated to WY21 using calibrated evaporation rate ER_MERLC from 'CS3_ER_MERLC_rev1.xls
+
+    Parameters
+    ----------
+    s_dss_file: str
+        Path to DSS file with evaporation rates
+    df_storage_data: dataframe
+        Storage data containing the reservoir
+
+    Returns
+    -------
+    None
+    """
+
+    # get the evap rates from the dss file
+    df_evap_rates = read_evap_data(s_dss_file, 'ER_MERLC')
+    # get the storage for Lake Merle
+    df_stor_MCollins = df_storage_data.loc[:, "LAKE_MERLE"]
+
+    # TODO: do we need to run the curve filling here?
+    # equation comes from excel
+    # y = -0.00226x2 + 16.80972x - 1.51461
+    df_evap_MCollins = (-0.00226 * df_stor_MCollins.pow(2) + 16.80972 * df_stor_MCollins - 1.51461) * df_evap_rates.loc[:, "IN"] / 12 / 1000
+    df_storage_data.loc[:, f'MERLC_evap'] = df_evap_MCollins
+
+
+def calc_evap_SPLDG(s_dss_file, df_storage_data):
+    """
+    Calculate the evaporation amount for Lake Spaulding. Follows the logic in CS3_I_CMBIE_Rev2022G. Updated to WY21 using calibrated evaporation rate ER_SPLDG from 'CS3_ER_SPLDG_rev1.xls
+
+    Parameters
+    ----------
+    s_dss_file: str
+        Path to DSS file with evaporation rates
+    df_storage_data: dataframe
+        Storage data containing the reservoir
+
+    Returns
+    -------
+    None
+    """
+
+    # get the evap rates from the dss file
+    df_evap_rates = read_evap_data(s_dss_file, 'ER_SPLDG')
+
+    # read in the area capacity table
+    df_area_capacity = pd.read_csv(r"./Area Capacities/SPLDG_AC.csv")
+    df_area_capacity['TAF'] = df_area_capacity['Capacity (acre-feet)'] / 1000
+    df_area_capacity['Elevation'] = (df_area_capacity['Elevation (ft)'] + df_area_capacity['Elevation (ft)'].shift(1)) / 2
+    df_area_capacity['Capacity'] = (df_area_capacity['TAF'] + df_area_capacity['TAF'].shift(1)) / 2
+    df_area_capacity.iloc[0, :] = df_area_capacity.iloc[0].fillna(0)
+    df_area_capacity['Area'] = (df_area_capacity['Capacity (acre-feet)'].shift(1) - df_area_capacity['Capacity (acre-feet)']) / (
+                df_area_capacity['Elevation (ft)'].shift(1) - df_area_capacity['Elevation (ft)'])
+    df_area_capacity.iloc[0, :] = df_area_capacity.iloc[0].fillna(0)
+
+    # this one has different formula than others in the table
+    df_area_capacity.loc[1, "Area"] = 20
+    df_area_capacity["Area"] = df_area_capacity["Area"].cummax()
+    df_storage_data.loc[:, f'SPLDG_evap'] = calculate_evap_data(
+        df_storage_data.loc[:, "11414140"],
+        df_evap_rates,
+        df_area_capacity[['Capacity', 'Area']],
+        b_set_zeros=True
+    )

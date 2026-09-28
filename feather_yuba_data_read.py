@@ -6,11 +6,11 @@ if __name__ == "__main__":
     # this file reads in the upper american USGS and CDEC data amd combines it with the previous data
 
     # this holds the USGS data (sometimes gap filled) from the previous extension
-    s_previous_data = r"./Inputs/upper_american_2022_extension_data.csv"
+    s_previous_data = r"./Inputs/feather_yuba_2022_extension_data.csv"
 
-    s_station_list = r'./Inputs/upper_american_data_stations.csv'
+    s_station_list = r'./Inputs/feather_yuba_data_stations.csv'
 
-    df_station_list = pd.read_csv(s_station_list, header=0)
+    df_station_list = pd.read_csv(s_station_list, header=0, dtype=str)
 
     # USGS stations to pull data for
     sl_usgs_stations = df_station_list[df_station_list['Source'] == 'USGS']['Station ID'].to_list()
@@ -36,13 +36,11 @@ if __name__ == "__main__":
     df_gauge_data_monthly_taf = pd.merge(df_usgs_data_monthly_taf, df_cdec_data_monthly_taf, how='outer',
                                          left_index=True, right_index=True)
 
-    df_gauge_data_monthly_taf.rename(columns={'BEV': 'YB90'}, inplace=True)
-
     # save to csvs
-    df_gauge_data_original.to_csv('./Intermediate/upper_american_gauge_data_original.csv')
-    df_gauge_data_monthly_taf.to_csv('./Intermediate/upper_american_gauge_data_monthly_taf.csv')
+    df_gauge_data_original.to_csv('./Intermediate/feather_yuba_gauge_data_original.csv')
+    df_gauge_data_monthly_taf.to_csv('./Intermediate/feather_yuba_gauge_data_monthly_taf.csv')
 
     # combine the new data with the previous data
     df_full_data = read_previous_data(s_previous_data, df_gauge_data_monthly_taf)
     # save to a csv
-    df_full_data.to_csv('./Intermediate/upper_american_full_gauge_data.csv')
+    df_full_data.to_csv('./Intermediate/feather_yuba_full_gauge_data.csv')

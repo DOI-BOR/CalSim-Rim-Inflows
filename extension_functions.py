@@ -11,6 +11,55 @@ import urllib.error, urllib.request
 import os
 
 
+def vba_like_factor_calc_I_RLLNS(df_xcum, dl_tcum, dl_scum):
+    """Generates cumulative proprotions of the data to fill for
+    s_curve_disaggregation by replicating the bug in the excel
+    VBA. The VBA line `If (TNCUM(K) <= TCUM(N)) Or (TNCUM(K) + N =
+    14)` assumed the final cumulative proportion is always 1, but in
+    cases due to negative values it is higher than 1, and that results
+    in VBA code skipping this IF condition and using the values from
+    last loop silently. This function replicates that for I_RLLNS
+
+    Parameters
+    ----------
+    df_xcum: pd.DataFrame
+        Cumulative proportions of the x values (reference data) for each water year (rows) and months (columns)
+    df_tcum: pd.Series
+        Cumulative proportions of the x values (reference data) for each month over the period
+    df_scum: pd.Series
+        Cumulative proportions of the y values (location data) for each month over the period
+    Returns
+    -------
+    df_ycum: pd.DataFrame
+        Cumulative proportions of the y values (location data) for each water year (rows) and months (columns)
+    """
+    df_sncum = np.empty_like(df_xcum)
+    dl_prev_sncum = np.array([np.nan for _ in  range(df_xcum.shape[1])])
+    for i_row in range(df_xcum.shape[0]):
+        d_prev_value = np.nan
+        for i_col in range(df_xcum.shape[1]):
+            d_target = df_xcum.iloc[i_row, i_col]
+            dl_matches = np.where(d_target <= dl_tcum[1:])[0]
+            if len(dl_matches) or d_target == 1:
+                i_index = dl_matches[0] + 1
+                d_denom = dl_tcum[i_index] - dl_tcum[i_index - 1]
+                if d_denom == 0:
+                    d_factor = (d_target - dl_tcum[i_index - 1]) / (d_denom + 1e-6)
+                else:
+                    d_factor = (d_target - dl_tcum[i_index - 1]) / d_denom
+                dl_sncum = dl_scum[i_index-1] + d_factor * (dl_scum[i_index] - dl_scum[i_index-1])
+                dl_prev_sncum[i_col] = dl_sncum
+            else:
+                # VBA behaviour: reuse previous FACTOR and SNCUM because it skips the loop
+                dl_sncum = dl_prev_sncum[i_col]
+            df_sncum[i_row, i_col] = dl_sncum
+    return pd.DataFrame(
+        df_sncum,
+        index=df_xcum.index,
+        columns=df_xcum.columns
+    )
+
+
 def s_curve_disaggregation(df_x_data, df_y_data, i_x_start_year, i_x_end_year, i_y_start_year,
                            i_y_end_year, b_use_all_y=False, s_strange_sheet=''):
     """
@@ -122,6 +171,16 @@ def s_curve_disaggregation(df_x_data, df_y_data, i_x_start_year, i_x_end_year, i
     # these are the scaled version of the df_x_cumulative_proportions numbers
     df_y_cumulative_proportions = dl_y_avg_cumulative_proportions[il_indices- 1] + df_factors * (dl_y_avg_cumulative_proportions[il_indices] - dl_y_avg_cumulative_proportions[il_indices- 1])
 
+    # TODO BUG FIX LATER
+    # I_RLLNS has negatives values and the VBA code there has a bug
+    # that makes it reuse values from last iteration instead of using the maximum value
+    # The line below fails because TNCUM(K) is > 1 which means > 14 not = 14 (fixing it
+    # matches the excel with python, but we can't change excel in this step)
+    # MODELB VBA Code Line 70:
+    # If (TNCUM(K) <= TCUM(N)) Or (TNCUM(K) + N = 14) Then
+    if s_strange_sheet == "RLLNS":
+        df_y_cumulative_proportions = vba_like_factor_calc_I_RLLNS(df_x_cumulative_proportions, dl_x_avg_cumulative_proportions, dl_y_avg_cumulative_proportions)
+
     # now we will fit a linear regression on all the data we have y data for even if it's larger than the y window
     # first get the year totals
     df_x_year_totals = pd.DataFrame(df_x_data.sum(axis=1))
@@ -129,6 +188,9 @@ def s_curve_disaggregation(df_x_data, df_y_data, i_x_start_year, i_x_end_year, i
 
     if s_strange_sheet == "DEE023":
         df_y_year_totals.drop(index=1967, inplace=True)
+    elif s_strange_sheet == "JKSMD":
+        # excel: Exclude years 1982, 1983, 1984, 1986, 1995, 1996, 1997, 2017 as gage data inconsistent
+        df_y_year_totals.drop(index=[1982, 1983, 1984, 1986, 1995, 1996, 1997, 2017], inplace=True)
     # fit a model and get the slope and intercept
     o_lin_model = LinearRegression()
     o_lin_model.fit(df_x_year_totals.loc[df_y_year_totals.index,], df_y_year_totals)
@@ -143,6 +205,14 @@ def s_curve_disaggregation(df_x_data, df_y_data, i_x_start_year, i_x_end_year, i
 
     # do the reverse of a cumulative sum to get the scaled version of df_x_data
     df_y_data_synthetic = pd.DataFrame(np.diff(df_y_cumulative_totals, prepend=0), index=df_x_data.index, columns=df_x_data.columns)
+
+    # TODO HACK: remove after replication is successful
+    if s_strange_sheet == "MERLC_MODELB":
+        # the calculation is outdated, so we overwrite it with the previous results
+        df_y_data_synthetic = pd.read_csv("./Inputs/I_MERLC-MODELB.csv", index_col="Water Year")
+    elif s_strange_sheet == "SPLDG_MODELC":
+        # the calculation is outdated, so we overwrite it with the previous results
+        df_y_data_synthetic = pd.read_csv("./Inputs/I_SPLDG-MODELC.csv", index_col="Water Year")
 
     # put the range of original y to keep back in
     df_y_data_output = df_y_data_synthetic.copy()
