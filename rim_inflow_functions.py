@@ -2563,3 +2563,139 @@ def I_RLLNS(df_extended_data, df_unimpaired_data, df_rim_inflows):
     df_rim_inflows['I_RLLNS'] = df_location
     # create the plots to compare the observed vs synthetic data (+1 as python range is non-inclusive)
     create_final_flow_plots(df_location, list(range(1965, 2021+1)), 'I_RLLNS')
+
+
+def I_MERLC(df_extended_data, df_pos_extended_data, df_rim_inflows):
+    """
+    Calculate the final rim inflow for CalSim. Location: I_MERLC
+
+    Parameters
+    ----------
+    df_extended_data: dataframe
+        Dataframe of the extended data to pull from
+    df_pos_extended_data: dataframe
+        Dataframe of the extended data without negatives to pull from
+    df_rim_inflows: dataframe
+        Dataframe of rim inflows that have been calculated already
+
+    Returns
+    -------
+    None
+    """
+    df_location = df_pos_extended_data["MERLC_MODELA"].copy(deep=True)
+    df_location.loc["2013-10":] = df_extended_data.loc["2013-10":, "MERLC_MODELB"].clip(lower=0).fillna(0)
+    # set anything negative to zero.
+    df_location.loc[df_location < 0] = 0
+    df_location = df_location.round(2)
+
+    # add into the rim inflow dataframe
+    df_rim_inflows['I_MERLC'] = df_location
+    # create the plots to compare the observed vs synthetic data (+1 as python range is non-inclusive)
+    create_final_flow_plots(df_location, list(range(1968, 1980+1)), 'I_MERLC')
+
+
+def I_SPLDG(df_extended_data, df_unimpaired_data, df_rim_inflows):
+    """
+    Calculate the final rim inflow for CalSim. Location: I_SPLDG
+
+    Parameters
+    ----------
+    df_extended_data: dataframe
+        Dataframe of the extended data to pull from
+    df_unimpaired_data: dataframe
+        Dataframe of the unimpaired data to pull from
+    df_rim_inflows: dataframe
+        Dataframe of rim inflows that have been calculated already
+
+    Returns
+    -------
+    None
+    """
+    df_total = pd.Series(
+        df_extended_data['11414250_MODELD'],
+        index=df_rim_inflows.index
+    ).fillna(df_unimpaired_data["11414250"])
+    df_total.loc[:"1927-09"] = df_extended_data['11414250_NFY029'].loc[:"1927-09"]
+    df_total.loc["1927-10":"1942-09"] = df_extended_data['11414250_BOWMN'].loc["1927-10":"1942-09"]
+    df_here = df_total - df_rim_inflows["I_SFY048"] - df_rim_inflows["I_FRDYC"]
+    df_location = remove_negatives_timeseries(df_here.to_frame("TAF")).TAF
+    
+    # set anything negative to zero.
+    df_location.loc[df_location < 0] = 0
+    df_location = df_location.round(2)
+
+    # add into the rim inflow dataframe
+    df_rim_inflows['I_SPLDG'] = df_location
+    # create the plots to compare the observed vs synthetic data (+1 as python range is non-inclusive)
+    create_final_flow_plots(df_location, list(range(1967, 2021+1)), 'I_SPLDG')
+
+
+def I_LCBRF(df_extended_data, df_unimpaired_data, df_rim_inflows):
+    """
+    Calculate the final rim inflow for CalSim. Location: I_LCBRF
+
+    Parameters
+    ----------
+    df_extended_data: dataframe
+        Dataframe of the extended data to pull from
+    df_unimpaired_data: dataframe
+        Dataframe of the unimpaired data to pull from
+    df_rim_inflows: dataframe
+        Dataframe of rim inflows that have been calculated already
+
+    Returns
+    -------
+    None
+    """
+    df_location = pd.Series(
+        df_extended_data['FERC_11414000'],
+        index=df_rim_inflows.index
+    )
+    df_location.loc[:"1927-09"] = df_extended_data.loc[:"1927-09", "FERC_NFY029"]
+    df_location.loc["1927-10":"1942-09"] = df_extended_data.loc["1927-10":"1942-09", "FERC_BOWMN"]
+    df_location.loc["1942-10":"2008-09"] = df_extended_data.loc["1942-10":"2008-09", "FERC_11414000_2"]
+    df_location.loc["1994-10":"2008-09"] = df_unimpaired_data.loc["1994-10":"2008-09", "FERC"]
+
+    # set anything negative to zero.
+    df_location.loc[df_location < 0] = 0
+    df_location = df_location.round(2)
+
+    # add into the rim inflow dataframe
+    df_rim_inflows['I_LCBRF'] = df_location
+    # create the plots to compare the observed vs synthetic data (+1 as python range is non-inclusive)
+    create_final_flow_plots(df_location, list(range(1967, 2021+1)), 'I_LCBRF')
+
+
+def I_SFY007(df_extended_data, df_rim_inflows):
+    """
+    Calculate the final rim inflow for CalSim. Location: I_SFY007
+
+    Parameters
+    ----------
+    df_extended_data: dataframe
+        Dataframe of the extended data to pull from
+    df_rim_inflows: dataframe
+        Dataframe of rim inflows that have been calculated already
+
+    Returns
+    -------
+    None
+    """
+    df_total = (
+        df_extended_data["11417500"]
+        - df_rim_inflows["I_SFY048"]
+        - df_rim_inflows["I_BOWMN"]
+        - df_rim_inflows["I_FRDYC"]
+        - df_rim_inflows["I_SPLDG"]
+        - df_rim_inflows["I_FRNCH"]
+        - df_rim_inflows["I_LCBRF"]
+    )
+    df_location = remove_negatives_timeseries(df_total.to_frame("TAF")).TAF
+    # set anything negative to zero.
+    df_location.loc[df_location < 0] = 0
+    df_location = df_location.round(2)
+
+    # add into the rim inflow dataframe
+    df_rim_inflows['I_SFY007'] = df_location
+    # create the plots to compare the observed vs synthetic data (+1 as python range is non-inclusive)
+    create_final_flow_plots(df_location, list(range(1960, 2021+1)), 'I_SFY007')
