@@ -383,8 +383,26 @@ if __name__ == "__main__":
         # Add the datetime where the max occurs per column
         df_diff = abs(df_reference[df_rim_inflows.columns] - df_rim_inflows)
         df_diffs['Date of Max Difference'] = df_diff.idxmax()
+        # --- Max Percent Difference computed at the max-diff timestamp per column ---
+        # Prepare matrices for fast, aligned lookup
+        df_ref_cols = df_reference[df_rim_inflows.columns]
+        df_rim_cols = df_rim_inflows[df_rim_inflows.columns]
 
-        df_diffs['Max Percent Difference'] = (abs(df_reference[df_rim_inflows.columns] - df_rim_inflows)).max() / df_reference[df_rim_inflows.columns].mean()*100
+        # Map each column to the integer row index of its "Date of Max Difference"
+        row_idx = df_ref_cols.index.get_indexer(df_diffs['Date of Max Difference'])
+        col_idx = np.arange(len(df_rim_inflows.columns))
+
+        # Extract values from each column at its own max-diff row
+        ref_vals = df_ref_cols.to_numpy()[row_idx, col_idx]
+        rim_vals = df_rim_cols.to_numpy()[row_idx, col_idx]
+
+        # Percent difference: |rim - ref| / ref * 100 (guard against divide-by-zero)
+        with np.errstate(divide='ignore', invalid='ignore'):
+            pct_vals = np.where(ref_vals != 0, np.abs(rim_vals - ref_vals) / ref_vals * 100, 0)
+
+        df_diffs['Max Percent Difference'] = pct_vals
+        # -------------------------------------------------------------------------------
+
         # calculate RMSE
         df_rmse = np.sqrt(((df_reference[df_rim_inflows.columns] - df_rim_inflows) ** 2).mean()).to_frame("RMSE")
         df_diffs = df_diffs.join(df_rmse)

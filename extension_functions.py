@@ -1,4 +1,5 @@
 import numpy as np
+import math
 import pandas as pd
 import io, time
 from datetime import timedelta, datetime
@@ -43,6 +44,7 @@ def s_curve_disaggregation(df_x_data, df_y_data, i_x_start_year, i_x_end_year, i
     df_y_data_synthetic: dataframe
         Full timeseries of synthetic y data.
     """
+
     # if it is a series, get it into the monthly format
     if isinstance(df_x_data, pd.Series):
         df_x_data = timeseries_to_monthly(df_x_data.to_frame('TAF'))
@@ -62,6 +64,9 @@ def s_curve_disaggregation(df_x_data, df_y_data, i_x_start_year, i_x_end_year, i
     # if working on COL003 (11315000), we need to use only 1944 to 2021 for monthly averages
     if (s_strange_sheet == 'COL003'):
         dl_x_month_avgs = [0] + df_x_data.loc[1944:i_y_end_year, :].mean(axis=0).tolist()
+    elif s_strange_sheet == 'DONLL':
+        # use all months for average instead of the 1973-2010 that Excel does
+        dl_x_month_avgs = [0] + df_x_data.loc[df_y_data.index, :].mean(axis=0).tolist()
     else:
         dl_x_month_avgs = [0] + df_x_data.loc[i_y_start_year:i_y_end_year, :].mean(axis=0).tolist()
 
@@ -87,6 +92,9 @@ def s_curve_disaggregation(df_x_data, df_y_data, i_x_start_year, i_x_end_year, i
     elif(s_strange_sheet == 'DEE023'):
         # if doing DEE023, do the standard calculation for this step
         dl_y_month_avgs = [0] + df_y_data.loc[i_y_start_year:i_y_end_year, :].mean(axis=0).tolist()
+    elif(s_strange_sheet == 'DONLL'):
+        # use all months for average instead of the 1973-2010 that Excel does
+        dl_y_month_avgs = [0] + df_y_data.mean(axis=0).tolist()
     else:
         dl_y_month_avgs = [0] + df_y_data.loc[i_y_start_year:i_y_end_year, :].mean(axis=0).tolist()
 
@@ -127,11 +135,13 @@ def s_curve_disaggregation(df_x_data, df_y_data, i_x_start_year, i_x_end_year, i
     df_x_year_totals = pd.DataFrame(df_x_data.sum(axis=1))
     df_y_year_totals = pd.DataFrame(df_y_data.sum(axis=1))
 
+    if s_strange_sheet == "SPICE":
+        df_y_year_totals = df_y_year_totals.loc[:1988]                                  #drop years after 1988
     if s_strange_sheet == "DEE023":
         df_y_year_totals.drop(index=1967, inplace=True)
     # fit a model and get the slope and intercept
     o_lin_model = LinearRegression()
-    o_lin_model.fit(df_x_year_totals.loc[df_y_year_totals.index,], df_y_year_totals)
+    o_lin_model.fit(df_x_year_totals.loc[df_y_year_totals.index], df_y_year_totals)
     d_slope = o_lin_model.coef_[0][0]
     d_intercept = o_lin_model.intercept_[0]
 
@@ -834,6 +844,23 @@ def pull_cdec_data(sl_stations, s_start_date, s_end_date):
         if s_units == 'AF':
             # this data is monthly so it just needs to be moved to the end of the month and divided by 1000
             # groupby and mean in case its more than monthly or not exactly on the first of the month but this should just move the data to the end of the month
+
+            # Check if there are any non-numeric values, and if so, coerce them to NaN
+            # Save the original values
+            df_original_value = df_current['VALUE']
+
+            # Convert to numeric with coercion
+            df_converted_value = pd.to_numeric(df_original_value, errors='coerce')
+
+            # Assign back
+            df_current['VALUE'] = df_converted_value
+
+            # Identify newly-coerced non-numeric values
+            bf_non_numeric_mask = df_original_value.notna() & df_converted_value.isna()
+
+            # Print only if true non-numeric values were found
+            if bf_non_numeric_mask.any():
+                print("Non-numeric values detected in ", station, " — coercing to NaN.")
             df_gauge_data_monthly_taf = df_gauge_data_monthly_taf.join((df_current.groupby(pd.Grouper(freq='ME')).mean()['VALUE'] / 1000).to_frame(station), how='outer')
 
         elif s_units == 'CFS':
@@ -876,7 +903,7 @@ def read_previous_data(s_path, df_new_data):
     df_all_data = pd.concat([df_previous_data, df_new_data], axis=0)
 
     # drop any duplicated indices, keep the first not the second
-    # this means any overlapping dates will be droped and the previous data will be kept, not the new data
+    # this means any overlapping dates will be dropped and the previous data will be kept, not the new data
     df_all_data = df_all_data.loc[~df_all_data.index.duplicated(keep='first'), :]
 
     # return the combined data
@@ -916,6 +943,7 @@ def extend_data(df_reference_data, df_current_data, df_extended_data, df_synthet
     -------
     None
     """
+
     # do the s-curve disaggregation
     df_curr_final_data, df_curr_synthetic_data = s_curve_disaggregation(df_reference_data,
                                                                         df_current_data,
@@ -1336,3 +1364,246 @@ def two_s_curves_comparison_plots(df_final_y_dat_1, df_x_data_1,
     plt.savefig(f'./Figures/Model_Comparison/{s_current_location} Comparison of Two Models, {s_model_name_1} and {s_model_name_2}'
                 , bbox_inches='tight', dpi=300)
     plt.close()
+
+def fill_monthly_storage(df_location, i_start_year, i_start_month, i_end_year, i_end_month, b_first_month_zero, b_round):
+    """
+        Fills missing storage values using monthly averages.
+
+        Parameters
+        ----------
+        df_location : DataFrame
+            One-column dataframe with DatetimeIndex.
+        i_start_year : int
+            First year of the dataset to average.
+        i_start_month : int
+            First month of the dataset to average.
+        i_end_year : int
+            Last year of the dataset to average.
+        i_end_month : int
+            Last month of the dataset to average.
+        b_first_month_zero: bool
+            If true, set the sept 1922 value to zero. If false, set it to the oct average value.
+        b_round: bool
+            If true, round TAF values to the nearest thousandths place. If false, no rounding.
+        Returns
+        -------
+        DataFrame
+            Same one-column dataframe with NaNs filled only where (year < i_start_year),
+            using monthly means computed from the specified (year, month) window.
+        """
+
+    col = df_location.columns[0]
+    ser = df_location[col]
+
+    # ---- STEP 1: build start boundary ----
+    start_mask = (
+            (ser.index.year > i_start_year)
+            | ((ser.index.year == i_start_year) &
+               (ser.index.month >= i_start_month))
+    )
+
+    # ---- STEP 2: build end boundary ----
+    end_mask = (
+            (ser.index.year < i_end_year)
+            | ((ser.index.year == i_end_year) &
+               (ser.index.month <= i_end_month))
+    )
+
+    # final mask
+    mask_range = start_mask & end_mask
+
+    # ---- STEP 3: compute monthly averages ----
+    monthly_means = ser[mask_range].groupby(ser[mask_range].index.month).mean()
+    monthly_means = monthly_means.reindex(range(1, 13))  # ensure 1..12
+
+    #TODO remove, debugging dataframe
+    df_oct_to_be_avgd = df_location.loc[mask_range & (df_location.index.month == 10)]
+
+    # ---- STEP 4: fill only where year < i_start_year ----
+    mask_fill = (
+            ser.isna()
+            & ((ser.index.year < i_start_year) |
+               (ser.index.year == i_start_year) &
+               (ser.index.month < i_start_month))
+    )
+
+    ser_filled = ser.copy()
+    ser_filled.loc[mask_fill] = (
+        ser_filled.loc[mask_fill].index.month.map(monthly_means)
+    )
+
+    # the two methods of filling the first month are either to fill in zero or to match it with the next month's value.
+    if b_first_month_zero:
+        ser_filled.iloc[0] = 0
+    else:
+        ser_filled.iloc[0] = ser_filled.iloc[1]
+
+    if b_round:
+        ser_filled = ser_filled.round(decimals=3)
+    return ser_filled.to_frame(col)
+
+
+def fill_monthly_storage_w_middle_gap(df_location, i_start_year_1, i_start_month_1, i_end_year_1,
+                                      i_end_month_1, i_start_year_2, i_start_month_2, i_end_year_2,
+                                      i_end_month_2, b_first_month_zero, b_round):
+    """
+        Fills missing storage values using monthly averages. The data to be averaged is in two sections, each bounded by
+        a start year and start month and and end year and end month
+
+        Parameters
+        ----------
+        df_location : DataFrame
+            One-column dataframe with DatetimeIndex.
+        i_start_year_1 : int
+            First year of the first part of the dataset to average.
+        i_start_month_1 : int
+            First month of the first part of the dataset to average.
+        i_end_year_1 : int
+            Last year of the first part of the dataset to average.
+        i_end_month_1 : int
+            Last month of the first part of the dataset to average.
+        i_start_year_2 : int
+            First year of the second part of the dataset to average.
+        i_start_month_2 : int
+            First month of the second part of the dataset to average.
+        i_end_year_2 : int
+            Last year of the second part of the dataset to average.
+        i_end_month_2 : int
+            Last month of the second part of the dataset to average.
+        b_first_month_zero: bool
+            If true, set the sept 1922 value to zero. If false, set it to the oct average value.
+        b_round: bool
+            If true, round TAF values to the nearest thousandths place. If false, no rounding.
+        Returns
+        -------
+        DataFrame
+            Same one-column dataframe with NaNs filled only outside the two-dataset window,
+            using monthly means computed from the specified (year, month) window.
+        """
+
+    # --- basic validation ---
+    if df_location.shape[1] != 1:
+        raise ValueError("df_location must be a one-column DataFrame.")
+    if not isinstance(df_location.index, pd.DatetimeIndex):
+        raise TypeError("df_location must have a DatetimeIndex.")
+
+    col = df_location.columns[0]
+    ser = df_location[col]
+
+    # --- helper: inclusive window mask (>= start and <= end) ---
+    def window_mask(s: pd.Series, sy: int, sm: int, ey: int, em: int) -> pd.Series:
+        start_ok = (s.index.year > sy) | ((s.index.year == sy) & (s.index.month >= sm))
+        end_ok   = (s.index.year < ey)  | ((s.index.year == ey) & (s.index.month <= em))
+        return start_ok & end_ok
+
+    # masks for each window and their union
+    mask_w1    = window_mask(ser, i_start_year_1, i_start_month_1, i_end_year_1, i_end_month_1)
+    mask_w2    = window_mask(ser, i_start_year_2, i_start_month_2, i_end_year_2, i_end_month_2)
+    mask_union = mask_w1 | mask_w2
+
+    # --- per-month averages built from the union ---
+    if mask_union.sum() == 0:
+        raise ValueError("The two windows contain no rows; cannot compute monthly averages.")
+
+    monthly_means = ser[mask_union].groupby(ser[mask_union].index.month).mean()
+    monthly_means = monthly_means.reindex(range(1, 13))  # ensure 1..12 present (NaN where missing)
+
+    # --- fill scope: outside the union, only for NaNs ---
+    mask_fill   = ser.isna() & (~mask_union)
+    fill_values = ser.index.month.map(monthly_means)
+
+    # vectorized fill avoids length-mismatch errors
+    ser_filled = ser.where(~mask_fill, fill_values)
+
+    # --- special rule: first month (Sep 1922) ---
+    sept_1921 = pd.Timestamp(1921, 9, 30)
+    if sept_1921 in ser_filled.index:
+        if b_first_month_zero:
+            ser_filled.loc[sept_1921] = 0.0
+        else:
+            # Prefer October average; if missing, fall back to the next row if present
+            oct_mean = monthly_means.get(10, np.nan)
+            if pd.notna(oct_mean):
+                ser_filled.loc[sept_1921] = oct_mean
+            else:
+                pos = ser_filled.index.get_loc(sept_1921)
+                if isinstance(pos, (int, np.integer)) and (pos + 1) < len(ser_filled):
+                    ser_filled.iloc[pos] = ser_filled.iloc[pos + 1]
+    if b_round:
+        ser_filled = ser_filled.round(decimals=3)
+    return ser_filled.to_frame(col)
+
+def gap_fill_11291000(df_data, i_final_year):
+    """
+    Fills missing storage values for Relief Reservoir. Follows the logic of CS3_I_RLIEF_Rev2022F.xlsm
+
+    Parameters
+    ----------
+    df_data : DataFrame
+        The full set of gage data needed to fill this location. Also the location of the filled output column.
+    i_final_year: int
+        The last year for the calculation
+    Returns
+    -------
+    None
+    """
+    # first gap fill CDEC RLF and try to match "Relief Storage" in RLIEF sheet
+    # then gap fill the nov 1974 and sept 1984 with linear interpolation on adjacent months for 08281000
+    # them merge them
+    # then fill monthly averages from WY 1981 to 2021 and then WY 1981 to present.
+
+    # make a copy of the RLF data and fill in nan's for the zero values of storage (which are unphysical)
+    df_rlf_no_zeros = df_data[['RLF']].copy()
+    df_rlf_no_zeros.replace(0, np.nan, inplace=True)
+    # use linear interpolation to fill the nan's
+    df_rlf_interpolated = df_rlf_no_zeros.interpolate(method='linear', limit_area='inside')
+    # crop from WY1959 to present
+    df_rlf_cropped = df_rlf_interpolated.loc['1958-10-31':]
+    df_rlf_cropped.to_csv('./Intermediate/RLF_interpolated.csv')
+    # remove data from Jan 1974 to Sept 1980
+    df_rlf_cropped.loc['1974-01-31':'1980-09-30'] = np.nan
+
+    # make a copy of the RLF_TRIDAM data and fill in nan's for the zero values of storage (which are unphysical)
+    df_tridam_no_zeros = df_data[['RLF_TRIDAM']].copy()
+    df_tridam_no_zeros.replace(0, np.nan, inplace=True)
+    # use linear interpolation to fill the nan's
+    df_tridam_interpolated = df_tridam_no_zeros.interpolate(method='linear', limit_area='inside')
+    # crop from Jan 1974 to Sept 1980 to present
+    df_tridam_cropped = df_tridam_interpolated.loc['1974-01-31':'1980-09-30']
+
+    # fill the tridam values into rlf
+    df_rlf_cropped.loc['1974-01-31':'1980-09-30'] = df_tridam_cropped.loc['1974-01-31':'1980-09-30']
+
+    # fill the nan values in the USGS gage with the CDEC plus TRIDAM data
+
+    df_data['11291000_filled'] = df_data['11291000'].fillna(df_rlf_cropped['RLF'])
+
+    # set these three months to zero because the sheet does
+    df_data.loc['1976-07-31':'1976-09-30', '11291000_filled'] = 0
+
+    df_data['11291000_filled_2'] = fill_monthly_storage(df_data[['11291000_filled']], i_start_year=1980,
+                                                           i_start_month=10,
+                                                           i_end_year=i_final_year, i_end_month=9,
+                                                           b_first_month_zero=True,
+                                                           b_round=True)
+
+def round_half_up(x, n):
+    """
+    Rounds a numeric value using the half-up rule to a specified number of
+    decimal places.
+
+    Parameters
+    ----------
+    x : float or int
+        The numeric value to be rounded.
+    n : int
+        The number of decimal places to round to.
+
+    Returns
+    -------
+    float
+    The value of `x` rounded half-up to `n` decimal places.
+    """
+
+    factor = 10 ** n
+    return math.floor(x * factor + 0.5) / factor
