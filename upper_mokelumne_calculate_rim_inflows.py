@@ -39,11 +39,11 @@ if __name__ == "__main__":
     # in CMP001, fill the JNKSN_STORAGE in December 1965 with linear interpolation of the adjacent months.
     df_full_data.loc['1965-12-31', 'JNKSN_STORAGE'] = (df_full_data.loc['1965-11-30', 'JNKSN_STORAGE']
                                                        + df_full_data.loc['1966-01-31', 'JNKSN_STORAGE']) / 2
-    # for JNKSN, create a copy of data with dropped WY1955
-    df_full_data.rename(columns={'11332500': '11332500_v1'}, inplace=True)
-    df_full_data["11332500_v2"] = df_full_data["11332500_v1"].copy()
-    df_full_data.loc["1954-10-31":"1955-10-01", "11332500_v2"] = float("nan")
-    # for CMP014, create a copy of data with dropped WY1955 and WY1956
+
+    # for JNKSN, drop WY1955 from 11332500
+    df_full_data.loc["1954-10-31":"1955-10-01", "11332500"] = float("nan")
+
+    # for CMP014, create a copy of 11331500 with dropped WY1955 and WY1956
     df_full_data.loc["1954-10-31":"1956-10-01", "11331500"] = float("nan")
 
     # -----------------------------
@@ -65,11 +65,6 @@ if __name__ == "__main__":
         df_full_data['11319500_v2'] = np.nan
     df_full_data['11319500_v2'] = df_full_data['11319500'].copy()
     # -- end 11319500 merges --
-
-    # for JNKSN, create a copy of data with dropped WY1955. Sheet said "Do not use '55 as flow impacted by dam."
-    df_full_data.rename(columns={'11332500': '11332500_v1'}, inplace=True)
-    df_full_data["11332500_v2"] = df_full_data["11332500_v1"].copy()
-    df_full_data.loc["1954-10-31":"1955-10-01", "11332500_v2"] = float("nan")
 
     # see DSC035. df_full_data['11327000_v2'] is created to drop part of the data for before extension. the rest of the
     # data from the main dataset (df_full_data['11327000'] is later copied over the extension data where available.
@@ -147,7 +142,7 @@ if __name__ == "__main__":
                 df_extended_data, df_synthetic_data, 1934, i_final_year, False,
                 '11318500', i_final_year=i_final_year)                                              # see SFM005
     # for JNKSN, s-curve
-    extend_data(df_unimpaired_data['11335000'], df_full_data['11332500_v2'],
+    extend_data(df_unimpaired_data['11335000'], df_full_data['11332500'],
                 df_extended_data, df_synthetic_data, 1947, 1954, False,
                 '11332500', i_final_year=i_final_year)                                               # see JNKSN
     extend_data(df_unimpaired_data['11335000'], df_unimpaired_data['11333000'],
