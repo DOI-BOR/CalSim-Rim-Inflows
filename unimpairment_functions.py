@@ -1357,3 +1357,94 @@ def unimpaired_11333000(df_full_gauge_data):
                                           fl_storages=[df_JNKSN_storage])
 
     return df_unimpaired
+
+def unimpaired_11270000(df_full_gauge_data):
+    """
+     Calculate the unimpaired flow from of USGS gage 11270000.
+     Follows the logic from CS3_I_MCLRE_Rev2022F.xlsm
+
+     Parameters
+     ----------
+     df_full_gauge_data: dataframe
+       Gauge data that contains the current station and all needed to unimpair the flows. In TAF. This is full dataset
+     Returns
+     -------
+     df_unimpaired: dataframe
+         Unpaired flow for current station
+     """
+
+    # combine storage diff, evap, and export
+    df_unimpaired = unimpaired_flows(df_full_gauge_data['11270000'], fl_additions=[df_full_gauge_data['MCLRE_evap'], df_full_gauge_data['11267350']],
+                                          fl_storages=[df_full_gauge_data['11269500']])
+
+    return df_unimpaired
+
+
+def unimpaired_11257500(df_full_gauge_data):
+
+    """
+     Calculate the unimpaired flow ffor USGS 11257500 Fresno River Near Knowles, CA
+     Follows the logic from CS3_I_BUR005_Rev2022F.xlsm
+
+     Parameters
+     ----------
+     df_full_gauge_data: dataframe
+       Gauge data that contains the current station and all needed to unimpair the flows. In TAF. This is full dataset
+     Returns
+     -------
+     df_unimpaired: dataframe
+         Unpaired flow for current station
+     """
+
+    # combine storage diff, evap, and export
+    df_unimpaired = unimpaired_flows(df_full_gauge_data['11257500'],
+                                    fl_subtractions=[df_full_gauge_data['11267350'],df_full_gauge_data['11242350'] ])
+
+    return df_unimpaired
+
+def unimpaired_11259000(df_full_gauge_data):
+
+    """
+     Calculate the unimpaired flow ffor USGS 11259000 Chowchilla River below Buchanan Dam near Raymond
+     Follows the logic from CS3_I_ESTMN_Rev2022F.xlsm
+
+     Parameters
+     ----------
+     df_full_gauge_data: dataframe
+       Gauge data that contains the current station and all needed to unimpair the flows. In TAF. This is full dataset
+     Returns
+     -------
+     df_unimpaired: dataframe
+         Unpaired flow for current station
+     """
+
+    # combine storage diff, evap, and export
+    df_unimpaired = unimpaired_flows(df_full_gauge_data['11259000'],
+                                    fl_additions=[df_full_gauge_data['ESTMN_evap']],
+                                    fl_storages=[df_full_gauge_data['BUC']])
+
+    return df_unimpaired
+
+
+def unimpaired_ESTMNOutflow(df_full_gauge_data):
+
+    """
+     Calculate the unimpaired flow ffor USACE Estman Lake/Buchanan Dam releases
+     Follows the logic from CS3_I_ESTMN_Rev2022F.xlsm
+
+     Parameters
+     ----------
+     df_full_gauge_data: dataframe
+       Gauge data that contains the current station and all needed to unimpair the flows. In TAF. This is full dataset
+     Returns
+     -------
+     df_unimpaired: dataframe
+         Unpaired flow for current station
+     """
+
+    # combine storage diff, evap, and export
+    df_unimpaired = unimpaired_flows(df_full_gauge_data['ESTMNOutflow'],
+                                    fl_additions=[df_full_gauge_data['ESTMN_evap']],
+                                    fl_storages=[df_full_gauge_data['BUC']])
+
+    return df_unimpaired

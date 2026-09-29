@@ -529,6 +529,9 @@ def area_scale(df_values, d_area_1, d_area_2):
 
 
 def get_diversions(df_diversion_data_upstream, df_diversion_data_downstream, d_area_up, d_area_down):
+
+    # TO DO - Add Function Information
+
     if isinstance(df_diversion_data_upstream, pd.DataFrame) and isinstance(df_diversion_data_downstream, pd.DataFrame):
         df_diversion_data_upstream = df_diversion_data_upstream['TAF']
         df_diversion_data_downstream = df_diversion_data_downstream['TAF']
@@ -1054,6 +1057,45 @@ def gap_fill(df_data, c_locations, i_final_year):
         # fill but only for the water years specified
         df_data.loc[df_location['Water Year'].isin(c_locations[location]), location] = df_location[location].fillna(df_location['Mean'])
 
+
+def gap_fill_similarWYs(itl_similaryears,df_full_data,s_location):
+
+    """
+    Gap fill the the dataset by replacing values with value from the same month in a similar water year (from the provided similar water year list)
+
+    Parameters
+    ----------
+    itl_similaryears: integer tuple list
+        tuple list of matching water years (wys), first value is the wy of data to replace, second value is the wy to replace it with  
+    df_full_data: dataframe
+        Dataframe to be gapfilled
+    s_location: string
+        Location to be gapfilled, must match location column name
+    Returns
+    -------
+    None
+    """
+
+    for i_wy,i_simwy in itl_similaryears:
+        for month in ['10','11','12','01','02','03','04','05','06','07','08','09']:
+
+            # get correct calendar year depending on month, and convert integer years to strings
+            if int(month) >= 10:
+                s_wy = str(i_wy-1)
+                s_simwy = str(i_simwy-1)
+            else:
+                s_wy = str(i_wy)
+                s_simwy = str(i_simwy)
+
+            # special case february matching leap and non leap years, VLOOKUP is done with cfs, which automatically adjust for # days in the month, here's will need to manually adjust the volume for the month length
+            # TO DO - Decide if we want to keep this this way
+            if int(month) == 2:
+                f_multiplier = df_full_data.loc[f"{s_wy}-{month}"].index.day[0] / df_full_data.loc[f"{s_simwy}-{month}"].index.day[0]
+            else:
+                f_multiplier = 1
+
+            # replace desired month with month from similar water year
+            df_full_data.loc[f"{s_wy}-{month}",s_location] = df_full_data.loc[f"{s_simwy}-{month}",s_location].values[0]*f_multiplier
 
 def create_rim_inflow_comparison_plots(df_new, df_old):
     """
