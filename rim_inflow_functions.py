@@ -2699,3 +2699,30 @@ def I_SFY007(df_extended_data, df_rim_inflows):
     df_rim_inflows['I_SFY007'] = df_location
     # create the plots to compare the observed vs synthetic data (+1 as python range is non-inclusive)
     create_final_flow_plots(df_location, list(range(1960, 2021+1)), 'I_SFY007')
+
+
+def I_SLT009(df_extended_data, df_rim_inflows):
+    """
+    Calculate the final rim inflow for CalSim. Location: I_SLT009
+
+    Parameters
+    ----------
+    df_extended_data: dataframe
+        Dataframe of the extended data to pull from
+    df_rim_inflows: dataframe
+        Dataframe of rim inflows that have been calculated already
+
+    Returns
+    -------
+    None
+    """
+    df_location = df_extended_data.loc[:,'SLATE CREEK ABOVE DIVERSION DAM']
+        # set anything negative to zero.
+    df_location.loc[df_location < 0] = 0
+    df_location = df_location.round(2)
+
+    # add into the rim inflow dataframe
+    df_rim_inflows['I_SLT009'] = df_location
+    # create the plots to compare the observed vs synthetic data (+1 as python range is non-inclusive)
+    create_final_flow_plots(df_location, list(range(1960, 2021+1)), 'I_SLT009')
+
