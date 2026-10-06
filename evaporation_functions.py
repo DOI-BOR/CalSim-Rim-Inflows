@@ -1166,6 +1166,66 @@ def calc_evap_CMPFW(s_dss_file, df_storage_data, s_data_suffix=""):
     )
 
 
+def calc_evap_OBLDB(s_dss_file, df_storage_data, s_data_suffix=""):
+    """
+    Calculate the evaporation amount for Old Bullards Bar. Follows the logic in CS3_I_NBLDB_Rev2022G. Updated to WY21 using calibrated evaporation rate ER_NBLDB from 'CS3_ER_NBLDB_rev1.xls
+
+    Parameters
+    ----------
+    s_dss_file: str
+        Path to DSS file with evaporation rates
+    df_storage_data: dataframe
+        Storage data containing the reservoir
+    s_data_suffix: str
+        Suffix to add while accessing data (if there is duplicate data for the storage)
+
+    Returns
+    -------
+    None
+    """
+
+    # get the evap rates from the dss file
+    df_evap_rates = read_evap_data(s_dss_file, 'ER_NBLDB')
+    
+    df_area_capacity = pd.read_csv(r"./Area Capacities/OBLDB_AC.csv")
+    # area and capacity fom Bulletin 17, no need to process anything
+    df_storage_data.loc[:, f'OBLDB_evap{s_data_suffix}'] = calculate_evap_data(
+        df_storage_data.loc[:, f"OLD_BULLARDS{s_data_suffix}"],
+        df_evap_rates,
+        df_area_capacity[['Capacity', 'Area']],
+        b_set_zeros=True
+    )
+
+
+def calc_evap_NBLDB(s_dss_file, df_storage_data):
+    """
+    Calculate the evaporation amount for New Bullards Bar. Follows the logic in CS3_I_NBLDB_Rev2022G. Updated to WY21 using calibrated evaporation rate ER_NBLDB from 'CS3_ER_NBLDB_rev1.xls
+
+    Parameters
+    ----------
+    s_dss_file: str
+        Path to DSS file with evaporation rates
+    df_storage_data: dataframe
+        Storage data containing the reservoir
+
+    Returns
+    -------
+    None
+    """
+
+    # get the evap rates from the dss file
+    df_evap_rates = read_evap_data(s_dss_file, 'ER_NBLDB')
+    
+    df_area_capacity = pd.read_csv(r"./Area Capacities/NBLDB_AC.csv")
+    # area and capacity fom Bulletin 17, no need to process anything
+    df_storage_data.loc[:, f'NBLDB_evap'] = calculate_evap_data(
+        df_storage_data.loc[:, "11413515_I_NBLDB"],
+        df_evap_rates,
+        df_area_capacity[['Capacity', 'Area']],
+        b_set_zeros=True
+    )
+
+
 def calc_evap_MERLC(s_dss_file, df_storage_data):
     """
     Calculate the evaporation amount for Lake Merle Collins. Follows the logic in CS3_I_MERLC_Rev2022G. Updated to WY21 using calibrated evaporation rate ER_MERLC from 'CS3_ER_MERLC_rev1.xls
