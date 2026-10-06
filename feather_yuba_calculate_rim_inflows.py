@@ -110,11 +110,12 @@ if __name__ == "__main__":
     extend_data(df_rim_inflows["I_NFY029"], df_full_data.loc[:, "WILSON_CREEK"], df_extended_data, df_synthetic_data, 1976, 2004, False, 'WILSON_CREEK', i_x_start_year=1922, i_final_year=i_final_year)
     extend_data(df_unimpaired_data['11390000'], df_pos_unimpaired_data['MERLC'], df_extended_data, df_synthetic_data, 1968, 1980, False, 'MERLC_MODELA', i_final_year=i_final_year)
     extend_data(df_rim_inflows["I_OGN005"], df_pos_unimpaired_data['MERLC'], df_extended_data, df_synthetic_data, 1968, 1980, False, 'MERLC_MODELB', i_final_year=i_final_year, s_strange_sheet="MERLC_MODELB")
-    
-    df_temp = df_full_data.loc[:, [ "11413250", "11413300"]].sum(axis=1)
-    df_temp.loc[:"1960-09"] = pd.NA
-    extend_data(df_rim_inflows["I_NFY029"], df_temp, df_extended_data, df_synthetic_data, 1961, i_final_year, False, 'SLATE CREEK ABOVE DIVERSION DAM', i_x_start_year=1922, i_final_year=i_final_year)
-    
+
+    # Slate Creek ab Diversion Dam
+    df_summed = df_full_data.loc[:, [ "11413250", "11413300"]].sum(axis=1)
+    # Set zeros to null
+    df_summed.loc[:"1960-09"] = pd.NA
+    extend_data(df_rim_inflows["I_NFY029"], df_summed, df_extended_data, df_synthetic_data, 1961, i_final_year, False, 'SLATE CREEK ABOVE DIVERSION DAM', i_x_start_year=1922, i_final_year=i_final_year)
     
     # these two unimpaired depend on WILSON CREEK
     df_unimpaired_data['11416500'] = unimpaired_11416500(df_full_data, df_extended_data).loc[ti_calculate_range]
