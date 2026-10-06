@@ -111,6 +111,13 @@ if __name__ == "__main__":
     extend_data(df_unimpaired_data['11390000'], df_pos_unimpaired_data['MERLC'], df_extended_data, df_synthetic_data, 1968, 1980, False, 'MERLC_MODELA', i_final_year=i_final_year)
     extend_data(df_rim_inflows["I_OGN005"], df_pos_unimpaired_data['MERLC'], df_extended_data, df_synthetic_data, 1968, 1980, False, 'MERLC_MODELB', i_final_year=i_final_year, s_strange_sheet="MERLC_MODELB")
 
+    # Slate Creek ab Diversion Dam
+    df_summed = df_full_data.loc[:, [ "11413250", "11413300"]].sum(axis=1)
+    ## BUG TODO
+    # Set valid values to null, this is neccessary for replication because the function will otherwise use all values even though 1961 is passed as the y_start_year
+    # might need to modify s_curve function to either use all available value and remove years parameter, or explicitly remove the other years from computation
+    df_summed.loc[:"1960-09"] = pd.NA
+    extend_data(df_rim_inflows["I_NFY029"], df_summed, df_extended_data, df_synthetic_data, 1961, i_final_year, False, 'SLATE CREEK ABOVE DIVERSION DAM', i_x_start_year=1922, i_final_year=i_final_year)
     
     # these two unimpaired depend on WILSON CREEK
     df_unimpaired_data['11416500'] = unimpaired_11416500(df_full_data, df_extended_data).loc[ti_calculate_range]
@@ -140,7 +147,8 @@ if __name__ == "__main__":
     I_JKSMD(df_extended_data, df_unimpaired_data, df_rim_inflows)
     I_CMBIE(df_pos_unimpaired_data, df_rim_inflows)
     I_MERLC(df_extended_data, df_pos_extended_data, df_rim_inflows)
-    
+    I_SLT009(df_extended_data, df_rim_inflows)
+        
     # these extension depend on BOWMAN so
     # three models to extend this station
     extend_data(df_full_data.loc[:, "11414000"], df_pos_unimpaired_data['11414100'], df_extended_data, df_synthetic_data, 1967, i_final_year, False, '11414100', i_x_start_year=1943, i_final_year=1994)
