@@ -51,26 +51,29 @@ if __name__ == "__main__":
     # -----------------------------
 
     # -- begin 11319500 merges --
-    #### these two versions of 11319500 use different data sources (USGS vs EBMUD) and different gap filling. Neither one
-    #### is obviously better at first glance.
-    # with COL003 (11319500), EBMUD is main historical gage (pre-2021) but NaN's are filled with CDEC MKM
-    # Later the filled out USGS 11319500 is used for s-curve on the COL003
+    # these two versions of 11319500 use different gap filling. Neither one
+    # is obviously better at first glance.
+    # with COL003 (11319500), EBMUD Mok Hill is main historical gage (pre-2021) but NaN's are filled with CDEC MKM
+    # Later the filled out 11319500 is used for s-curve on the COL003
     # gage, which is USGS 11315000. Version 1 is used for COL003
     if '11319500_v1' not in df_full_data.columns:
         df_full_data['11319500_v1'] = np.nan
     df_full_data['11319500_v1'] = df_full_data['EBMUD_11319500'].fillna(df_full_data['MKM'])
 
-    # 11319500_v2 is created for use in MOK079. This is the USGS gage 11319500. Compare with COL003 above.
+    # 11319500_v2 is created for use in MOK079. It uses EBMUD Mok Hill data but gap fills it with
+    # 'Blw Camanche FNF EBMUD'!D21-I_PARDE!D24-I_CMCHE!D24
+    # Compare with COL003 above.
     if '11319500_v2' not in df_full_data.columns:
         df_full_data['11319500_v2'] = np.nan
     df_full_data['11319500_v2'] = df_full_data['11319500'].copy()
     # -- end 11319500 merges --
 
-    # see DSC035. df_full_data['11327000_v2'] is created to drop part of the data for before extension. the rest of the
-    # data from the main dataset (df_full_data['11327000'] is later copied over the extension data where available.
-    df_full_data['11327000_v2'] = df_full_data['11327000'].copy()
+    # see DSC035. df_temp['11327000'] is created to drop part of the data for before extension. the rest of the
+    # data from the main dataset (df_full_data['11327000']) is later copied over the extension data where available.
+    df_temp = pd.DataFrame()
+    df_temp['11327000'] = df_full_data['11327000'].copy()
     # fill before October 1960 with NaN.
-    df_full_data.loc[:'1960-10-01', '11327000_v2'] = float("nan")
+    df_temp.loc[:'1960-10-01', '11327000'] = float("nan")
 
     # save to csv
     df_full_data.to_csv('./Intermediate/upper_mokelumne_full_gauge_data_gap_filled.csv')
@@ -154,9 +157,9 @@ if __name__ == "__main__":
     extend_data(df_unimpaired_data['11335000'], df_full_data['11326300'],
                 df_extended_data, df_synthetic_data, 1961, 1970, False,
                 '11326300', i_final_year=i_final_year)                                               # see DSC035
-    extend_data(df_unimpaired_data['11335000'], df_full_data['11327000_v2'],
+    extend_data(df_unimpaired_data['11335000'], df_temp['11327000'],
                 df_extended_data, df_synthetic_data, 1961, 1980, False,
-                '11327000_v2', i_final_year=i_final_year)                                            # see DSC035
+                '11327000', i_final_year=i_final_year)                                            # see DSC035
     extend_data(df_unimpaired_data['11335000'], df_full_data['11335700'],
                 df_extended_data, df_synthetic_data, 1961, 1977, False,
                 '11335700', i_final_year=i_final_year, s_strange_sheet='DEE023')                     # see DEE023
@@ -205,7 +208,7 @@ if __name__ == "__main__":
     df_extended_data.fillna({'11316600': df_synthetic_data['11316600']}, inplace=True)                # see NFM010
 
     # see DSC035. copy data from 11327000 onto 11327000 extended data for the dates Oct 1936 - Nov 1941
-    df_extended_data.loc['1935-10-30':'1941-10-01', '11327000_v2'] = df_full_data.loc['1935-10-30':'1941-10-01', '11327000']
+    df_extended_data.loc['1935-10-30':'1941-10-01', '11327000'] = df_full_data.loc['1935-10-30':'1941-10-01', '11327000']
 
     # see DEE023. copy data in WY67 from 11335700 to 11335700_v1 after s-curve
     df_extended_data.loc['1966-10-01':'1967-10-01','11335700'] = df_full_data.loc['1966-10-01':'1967-10-01' , '11335700']
@@ -238,7 +241,7 @@ if __name__ == "__main__":
     I_CSM035(df_unimpaired_data[['11335000']], df_rim_inflows[['I_JNKSN']], df_rim_inflows[['I_CMP001']],
          df_rim_inflows[['I_CMP014']], df_rim_inflows)
     I_AMADR(df_unimpaired_data[['11335000']], df_rim_inflows)
-    I_DSC035(df_extended_data[['11326300']], df_extended_data[['11327000_v2']], df_rim_inflows)
+    I_DSC035(df_extended_data[['11326300']], df_extended_data[['11327000']], df_rim_inflows)
     I_DEE023(df_extended_data[['11335700']], df_rim_inflows)
 
     df_rim_inflows.to_csv('./Outputs/upper_mokelumne_rim_inflows.csv')
