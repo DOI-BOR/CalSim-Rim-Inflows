@@ -1292,3 +1292,37 @@ def calc_evap_SPLDG(s_dss_file, df_storage_data):
         df_area_capacity[['Capacity', 'Area']],
         b_set_zeros=True
     )
+
+
+def calc_evap_SCOTF(s_dss_file, df_storage_data):
+    """
+    Calculate the evaporation amount for Lake Spaulding. Follows the logic in CS3_I_DER001_Rev2022F.xlsm. Updated to WY21 using calibrated evaporation rate ER_SCOTF from 'CS3_ER_SCOTF_rev1.xls'
+
+    Parameters
+    ----------
+    s_dss_file: str
+        Path to DSS file with evaporation rates
+    df_storage_data: dataframe
+        Storage data containing the reservoir
+
+    Returns
+    -------
+    None
+    """
+
+    # get the evap rates from the dss file
+    df_evap_rates = read_evap_data(s_dss_file, 'ER_SCOTF')
+
+    # read in the area capacity table
+    df_area_capacity = pd.read_csv(r"./Area Capacities/SCOTF_AC.csv")
+    df_area_capacity['Capacity'] = df_area_capacity['Capacity (TAF)']
+
+    df_area_capacity.iloc[0, :] = df_area_capacity.iloc[0].fillna(0)
+    df_area_capacity['Area'] = df_area_capacity['Area (acres)']
+    df_area_capacity["Area"] = df_area_capacity["Area"].cummax()
+    df_storage_data.loc[:, f'SCOTF_evap'] = calculate_evap_data(
+        df_storage_data["SCOTTS_FLAT_I_DER001"],
+        df_evap_rates,
+        df_area_capacity[['Capacity', 'Area']],
+        b_set_zeros=False
+    ).loc[df_storage_data.index, "TAF"]

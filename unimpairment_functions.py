@@ -2099,3 +2099,66 @@ def unimpaired_FERC():
     df_ferc_monthly.index = pd.date_range("1975-10-31", "2008-09-30", freq="ME")
     df_ferc_monthly_taf = df_ferc_monthly * df_ferc_monthly.index.day *24*60*60/(220*22*9*1000)
     return df_ferc_monthly_taf
+
+
+def unimpaired_11418500(df_full_gauge_data):
+    """
+     Calculate the unimpaired flow for USGS 11418500 DEER C NR SMARTSVILLE CA
+     Follows the logic from CS3_I_DER001_Rev2022F.xlsm
+
+     Parameters
+     ----------
+     df_full_gauge_data: dataframe
+       Gauge data that contains the current station and all needed to unimpair the flows. In TAF. This is full dataset
+     Returns
+     -------
+     df_unimpaired: dataframe
+         Unpaired flow for current station
+     """
+
+    df_unimpaired = unimpaired_flows(
+        df_full_gauge_data["11418500_I_DER001"],
+        fl_additions = [
+            df_full_gauge_data['CSD'].fillna(0).clip(lower=0) * (1 - 0.2 * 0.15),
+            df_full_gauge_data['DCN'].fillna(0).clip(lower=0),
+            0.9 * (df_full_gauge_data['SNOW_MOUNTAIN'].fillna(0).clip(lower=0)),
+            0.9 * (df_full_gauge_data['DC-131'].fillna(0).clip(lower=0)),
+            0.9 * (df_full_gauge_data['DC-140_I_DER001'].fillna(0).clip(lower=0)),
+            0.9 * (df_full_gauge_data['DC-127'].fillna(0).clip(lower=0)),
+            0.9 * (df_full_gauge_data['CHINA_DITCH'].fillna(0).clip(lower=0)),
+            0.9 * (df_full_gauge_data['DC-183'].fillna(0).clip(lower=0)),
+            df_full_gauge_data["SCOTF_evap"].clip(lower=0).fillna(0)
+        ],
+        fl_storages = [
+            df_full_gauge_data["SCOTTS_FLAT_I_DER001"].fillna(0).clip(lower=0)
+
+        ],
+        fl_subtractions = [
+            0.2 * 0.15 * (df_full_gauge_data['DCN'].fillna(0).clip(lower=0) -
+            df_full_gauge_data['DS_CANAL_SPILLS_I_DER001'].fillna(0).clip(lower=0)),
+            df_full_gauge_data['11414205'].fillna(0).clip(lower=0),
+            0.5 * df_full_gauge_data['EXCELSIOR_DITCH'].fillna(0).clip(lower=0)
+        ]
+    )
+    # TODO this replicates the excel behaviour, but it is better to
+    # not do fillna and let NA values propagate natually for these
+    # timeseries
+    water_year = df_unimpaired.index.map(lambda x: x.year if x.month < 10 else (x.year + 1))
+
+    df_unimpaired.loc[(
+        df_full_gauge_data['11418500_I_DER001'].isna() |
+        df_full_gauge_data["SCOTF_evap"].isna() |
+        df_full_gauge_data["SCOTTS_FLAT_I_DER001"].isna() |
+        df_full_gauge_data['CSD'].isna() |
+        df_full_gauge_data['CHINA_DITCH'].isna() |
+        (df_full_gauge_data['DC-131'].isna() & (water_year > 1980)) | 
+        (df_full_gauge_data['DC-140_I_DER001'].isna() & (water_year > 1980)) | 
+        (df_full_gauge_data['DC-127'].isna() & (water_year > 1980)) | 
+        (df_full_gauge_data['DC-183'].isna() & (water_year > 1980)) | 
+        df_full_gauge_data['DCN'].isna() |
+        df_full_gauge_data['EXCELSIOR_DITCH'].isna() |
+        df_full_gauge_data['SNOW_MOUNTAIN'].isna() |
+        df_full_gauge_data['11414205'].isna()
+    ),] = pd.NA
+    
+    return df_unimpaired
