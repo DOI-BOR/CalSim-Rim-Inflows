@@ -45,7 +45,7 @@ if __name__ == "__main__":
     calc_evap_SPLDG(s_evap_dss_path, df_full_data)
     calc_evap_NBLDB(s_evap_dss_path, df_full_data)
     calc_evap_OBLDB(s_evap_dss_path, df_full_data)
-    # calc_evap_ENGLB(s_evap_dss_path, df_full_data)
+    calc_evap_ENGLB(s_evap_dss_path, df_full_data)
     calc_evap_SCOTF(s_evap_dss_path, df_full_data)
 
 
@@ -67,7 +67,7 @@ if __name__ == "__main__":
     df_unimpaired_data['FERC'] = unimpaired_FERC()
     df_unimpaired_data['11417500'] = unimpaired_11417500(df_full_data)
     df_unimpaired_data['NEW_BULLARDS'] = unimpaired_NEW_BULLARDS(df_full_data)
-    # df_unimpaired_data['11418000'] = unimpaired_11418000(df_full_data)
+    df_unimpaired_data['11418000'] = unimpaired_11418000(df_full_data)
     df_unimpaired_data['11418500'] = unimpaired_11418500(df_full_data)
 
     # drop the first row used for storage
@@ -123,7 +123,7 @@ if __name__ == "__main__":
     df_newbullards = df_pos_unimpaired_data['NEW_BULLARDS'].copy()
     df_newbullards.loc["1984-10":] = pd.NA
     extend_data(df_rim_inflows["I_NFY029"], df_newbullards, df_extended_data, df_synthetic_data, 1941, 1984, False, 'NEW_BULLARDS', i_x_start_year=1922, i_final_year=i_final_year)
-    # extend_data(df_rim_inflows["I_NFY029"], df_unimpaired_data.loc[:, "11418000"], df_extended_data, df_synthetic_data, 1936, i_final_year, False, '11418000', i_x_start_year=1922, i_final_year=i_final_year)
+    extend_data(df_rim_inflows["I_NFY029"], df_unimpaired_data.loc[:, "11418000"], df_extended_data, df_synthetic_data, 1936, i_final_year, False, '11418000', i_x_start_year=1922, i_final_year=i_final_year)
     extend_data(df_rim_inflows["I_NFY029"], df_unimpaired_data['11418500'], df_extended_data, df_synthetic_data, 1936, 2021, False, '11418500', i_x_start_year=1922, i_final_year=i_final_year, s_strange_sheet='DER001')
 
     # Slate Creek ab Diversion Dam
@@ -189,7 +189,7 @@ if __name__ == "__main__":
     I_LCBRF(df_extended_data, df_unimpaired_data, df_rim_inflows)
 
     I_SFY007(df_extended_data, df_rim_inflows)
-    # I_ENGLB(df_extended_data, df_rim_inflows)
+    I_ENGLB(df_extended_data, df_rim_inflows)
     
     # We have one extra date at the beginning for storage
     df_rim_inflows = df_rim_inflows.loc[ti_calculate_range]

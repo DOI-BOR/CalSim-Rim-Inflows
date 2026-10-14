@@ -2001,7 +2001,7 @@ def unimpaired_NEW_BULLARDS(df_full_gauge_data):
      df_unimpaired: dataframe
          Unpaired flow for current station
      """
-    df_bvid = df_full_gauge_data["BVID_DIVERSION"]
+    df_bvid = df_full_gauge_data["BVID_DIVERSION"].copy()
     df_bvid.loc[:"1966-09"] = 0
     df_unimpaired = unimpaired_flows(
         pd.DataFrame({
