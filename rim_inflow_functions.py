@@ -2726,3 +2726,44 @@ def I_SLT009(df_extended_data, df_rim_inflows):
     # create the plots to compare the observed vs synthetic data (+1 as python range is non-inclusive)
     create_final_flow_plots(df_location, list(range(1960, 2021+1)), 'I_SLT009')
 
+
+def I_DER001(df_extended_data, df_rim_inflows):
+    """
+    Calculate the final rim inflow for CalSim. Location: I_DER001
+
+    Parameters
+    ----------
+    df_extended_data: dataframe
+        Dataframe of the extended data to pull from
+    df_rim_inflows: dataframe
+        Dataframe of rim inflows that have been calculated already
+
+    Returns
+    -------
+    None
+    """
+    df_total = df_extended_data.loc[:,'11418500']
+        # set anything negative to zero.
+    df_total.loc[df_total < 0] = 0
+    df_der001 = 0.28 * df_total
+    df_sfd003 = 0.08 * df_total
+    df_scotf = 0.32 * df_total
+    df_der004 = 0.32 * df_total
+
+    df_der001 = df_der001.round(2)
+    df_sfd003 = df_sfd003.round(2)
+    df_scotf = df_scotf.round(2)
+    df_der004 = df_der004.round(2)
+
+    # add into the rim inflow dataframe
+    df_rim_inflows['I_DER001'] = df_der001
+    df_rim_inflows['I_SFD003'] = df_sfd003
+    df_rim_inflows['I_SCOTF'] = df_scotf
+    df_rim_inflows['I_DER004'] = df_der004
+
+    # create the plots to compare the observed vs synthetic data (+1 as python range is non-inclusive)
+    create_final_flow_plots(df_der001, list(range(1936, 2021+1)), 'I_DER001')
+    create_final_flow_plots(df_sfd003, list(range(1936, 2021+1)), 'I_SFD003')
+    create_final_flow_plots(df_scotf, list(range(1936, 2021+1)), 'I_SCOTF')
+    create_final_flow_plots(df_der004, list(range(1936, 2021+1)), 'I_DER004')
+
