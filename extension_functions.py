@@ -111,6 +111,12 @@ def s_curve_disaggregation(df_x_data, df_y_data, i_x_start_year, i_x_end_year, i
     # if working on COL003 (11315000), we need to use only 1944 to 2021 for monthly averages
     if (s_strange_sheet == 'COL003'):
         dl_x_month_avgs = [0] + df_x_data.loc[1944:i_y_end_year, :].mean(axis=0).tolist()
+    elif (s_strange_sheet == 'DER001'):
+        # TODO: BUG FIXME
+        # IDK why but the 2016 row on the Model A tab has data for total instead of 2016
+        df_x_temp = df_x_data.loc[i_y_start_year:i_y_end_year, :].copy()
+        df_x_temp.loc[2016] = df_x_data.mean()
+        dl_x_month_avgs = [0] + df_x_temp.mean(axis=0).tolist()
     else:
         dl_x_month_avgs = [0] + df_x_data.loc[i_y_start_year:i_y_end_year, :].mean(axis=0).tolist()
 
