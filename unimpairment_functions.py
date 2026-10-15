@@ -1697,7 +1697,7 @@ def unimpaired_11424000(df_full_gauge_data):
          Unpaired flow for current station
      """
     df_DS_CanalSpills = df_full_gauge_data.loc[:, "DS_CANAL_SPILLS_I_RLLNS"].clip(lower=0).fillna(0)
-    df_DS_CanalSpills.loc[:"2004-03"] = df_full_gauge_data.loc[:"2004-03", "DC-145"].clip(lower=0).fillna(0) * 0.6
+    df_DS_CanalSpills.loc[:"2004-03"] = df_full_gauge_data.loc[:"2004-03", "DCN"].clip(lower=0).fillna(0) * 0.6
     df_unimp_11424000 = unimpaired_flows(
         pd.DataFrame({
             "a": df_full_gauge_data.loc[:, "11424000"],
@@ -1722,8 +1722,8 @@ def unimpaired_11424000(df_full_gauge_data):
         fl_subtractions = [
             df_DS_CanalSpills,
             ((
-                df_full_gauge_data.loc[:, "DC-145"] - df_DS_CanalSpills
-            ).clip(lower=0).fillna(0) + df_full_gauge_data.loc[:, "DC-102"])*0.2*0.85,
+                df_full_gauge_data.loc[:, "DCN"] - df_DS_CanalSpills
+            ).clip(lower=0).fillna(0) + df_full_gauge_data.loc[:, "CSD"])*0.2*0.85,
             (
                 df_full_gauge_data.loc[:, "11414200"]
                 -  df_full_gauge_data.loc[:, "11414205_I_RLLNS"] / (1 - 0.125)
@@ -1755,7 +1755,7 @@ def unimpaired_11424000_ACC(df_full_gauge_data, df_rim_inflows):
          Unpaired flow for current station
      """
     df_DS_CanalSpills = df_full_gauge_data.loc[:, "DS_CANAL_SPILLS_I_RLLNS"].clip(lower=0).fillna(0)
-    df_DS_CanalSpills.loc[:"2004-03"] = df_full_gauge_data.loc[:"2004-03", "DC-145"].clip(lower=0).fillna(0) * 0.6
+    df_DS_CanalSpills.loc[:"2004-03"] = df_full_gauge_data.loc[:"2004-03", "DCN"].clip(lower=0).fillna(0) * 0.6
     df_rllns = df_rim_inflows.loc[:, "I_RLLNS"]
     df_ext_BearBwRollins = df_full_gauge_data.loc[:, "11422500"].fillna(unimpaired_flows(
         df_rllns,
@@ -1802,8 +1802,8 @@ def unimpaired_11424000_ACC(df_full_gauge_data, df_rim_inflows):
             df_DS_CanalSpills,
             # df_ext_BearBwRollins # see note above
             ((
-                df_full_gauge_data.loc[:, "DC-145"] - df_DS_CanalSpills
-            ).clip(lower=0).fillna(0) + df_full_gauge_data.loc[:, "DC-102"])*0.2*0.85
+                df_full_gauge_data.loc[:, "DCN"] - df_DS_CanalSpills
+            ).clip(lower=0).fillna(0) + df_full_gauge_data.loc[:, "CSD"])*0.2*0.85
         ],
         fl_storages = [
             df_full_gauge_data.loc[:, "LAKE_COMBIE"].fillna(0),
@@ -1940,6 +1940,99 @@ def unimpaired_11417500(df_full_gauge_data):
     ] = pd.NA
     return df_unimpaired
 
+
+def unimpaired_11418000(df_full_gauge_data):
+    """
+     Calculate the unimpaired flow for 11418000 YUBA R BL ENGLEBRIGHT DAM NR SMARTVILLE CA
+     Follows the logic from CS3_I_ENGLB_Rev2022G.xlsm
+
+     Parameters
+     ----------
+     df_full_gauge_data: dataframe
+       Gauge data that contains the current station and all needed to unimpair the flows. In TAF. This is full dataset
+     Returns
+     -------
+     df_unimpaired: dataframe
+         Unpaired flow for current station
+     """
+    df_unimpaired = unimpaired_flows(
+        df_full_gauge_data["11418000"],
+        fl_additions = [
+            df_full_gauge_data["11414200"].clip(lower=0).fillna(0),
+            df_full_gauge_data["11414170"].clip(lower=0).fillna(0),
+            df_full_gauge_data["11413250"].clip(lower=0).fillna(0),
+            df_full_gauge_data["BVID_DIVERSION"].clip(lower=0).fillna(0),
+            df_full_gauge_data["NBLDB_evap"].clip(lower=0).fillna(0),
+            df_full_gauge_data["OBLDB_evap"].clip(lower=0).fillna(0),
+            df_full_gauge_data["JKSMD_evap"].clip(lower=0).fillna(0),
+            df_full_gauge_data["FRNCH_evap"].clip(lower=0).fillna(0),
+            df_full_gauge_data["BOWMN_evap"].clip(lower=0).fillna(0),
+            df_full_gauge_data["FRDYC_evap"].clip(lower=0).fillna(0),
+            df_full_gauge_data["SPLDG_evap"].clip(lower=0).fillna(0),
+            df_full_gauge_data["ENGLB_evap"].clip(lower=0).fillna(0),
+        ],
+        fl_storages = [
+            df_full_gauge_data["11413515"].fillna(0),
+            df_full_gauge_data["OLD_BULLARDS_BAR"].fillna(0),
+            df_full_gauge_data["11407800_I_ENGLB"].fillna(0),
+            df_full_gauge_data["11414400"].fillna(0),
+            df_full_gauge_data["11414465_I_ENGLB"].fillna(0),
+            df_full_gauge_data["11414440_I_ENGLB"].fillna(0),
+            df_full_gauge_data["11415500"].fillna(0),
+            df_full_gauge_data["11414090_I_ENGLB"].fillna(0),
+            df_full_gauge_data["11414140_I_ENGLB"].fillna(0),
+            df_full_gauge_data["ENGLEBRIGHT_DAM"].fillna(0),
+        ],
+    )
+    return df_unimpaired
+
+
+def unimpaired_NEW_BULLARDS(df_full_gauge_data):
+    """
+     Calculate the unimpaired flow for N Yuba below New Bullards Bar Dam Site
+     Follows the logic from CS3_I_NBLDB_Rev2022G.xlsm
+
+     Parameters
+     ----------
+     df_full_gauge_data: dataframe
+       Gauge data that contains the current station and all needed to unimpair the flows. In TAF. This is full dataset
+     Returns
+     -------
+     df_unimpaired: dataframe
+         Unpaired flow for current station
+     """
+    df_bvid = df_full_gauge_data["BVID_DIVERSION"].copy()
+    df_bvid.loc[:"1966-09"] = 0
+    df_unimpaired = unimpaired_flows(
+        pd.DataFrame({
+            "a": df_full_gauge_data["11413500"].fillna(0),
+            "b": df_full_gauge_data["11413520"].fillna(0),
+            "c": df_full_gauge_data["11413517"].fillna(0) + df_full_gauge_data["NBLDB_SPILL"].fillna(0).clip(lower=0),
+        }).max(axis=1),
+        fl_additions = [
+            df_bvid,
+            df_full_gauge_data["NBLDB_evap"].clip(lower=0).fillna(0),
+            df_full_gauge_data["OBLDB_evap"].clip(lower=0).fillna(0),
+            df_full_gauge_data["11413510"].clip(lower=0).fillna(0),
+            # excel formula has Old Colgate but the values are all NA so skipping
+            df_full_gauge_data["11413250"].clip(lower=0).fillna(0),
+        ],
+        fl_storages = [
+            df_full_gauge_data["11413515_I_NBLDB"].fillna(0),
+            df_full_gauge_data["OLD_BULLARDS_BAR"].fillna(0),
+        ],
+        fl_subtractions = [
+            df_full_gauge_data["11409350"].clip(lower=0).fillna(0),
+        ]
+    )
+    df_unimpaired.loc[pd.DataFrame({
+            "a": df_full_gauge_data["11413500"],
+            "b": df_full_gauge_data["11413520"],
+            "c": df_full_gauge_data["11413517"] + df_full_gauge_data["NBLDB_SPILL"].fillna(0).clip(lower=0),
+        }).isna().all(axis=1)] = pd.NA
+    return df_unimpaired
+
+
 def unimpaired_FERC():
     """Calculate the unimpaired flow using I_LCBRF sheet for Texas, Fall, and Rucker Creeks
      Follows the logic from CS3_I_LCBRF_Rev2022G.xlsm
@@ -2006,3 +2099,66 @@ def unimpaired_FERC():
     df_ferc_monthly.index = pd.date_range("1975-10-31", "2008-09-30", freq="ME")
     df_ferc_monthly_taf = df_ferc_monthly * df_ferc_monthly.index.day *24*60*60/(220*22*9*1000)
     return df_ferc_monthly_taf
+
+
+def unimpaired_11418500(df_full_gauge_data):
+    """
+     Calculate the unimpaired flow for USGS 11418500 DEER C NR SMARTSVILLE CA
+     Follows the logic from CS3_I_DER001_Rev2022F.xlsm
+
+     Parameters
+     ----------
+     df_full_gauge_data: dataframe
+       Gauge data that contains the current station and all needed to unimpair the flows. In TAF. This is full dataset
+     Returns
+     -------
+     df_unimpaired: dataframe
+         Unpaired flow for current station
+     """
+
+    df_unimpaired = unimpaired_flows(
+        df_full_gauge_data["11418500_I_DER001"],
+        fl_additions = [
+            df_full_gauge_data['CSD'].fillna(0).clip(lower=0) * (1 - 0.2 * 0.15),
+            df_full_gauge_data['DCN'].fillna(0).clip(lower=0),
+            0.9 * (df_full_gauge_data['SNOW_MOUNTAIN'].fillna(0).clip(lower=0)),
+            0.9 * (df_full_gauge_data['DC-131'].fillna(0).clip(lower=0)),
+            0.9 * (df_full_gauge_data['DC-140_I_DER001'].fillna(0).clip(lower=0)),
+            0.9 * (df_full_gauge_data['DC-127'].fillna(0).clip(lower=0)),
+            0.9 * (df_full_gauge_data['CHINA_DITCH'].fillna(0).clip(lower=0)),
+            0.9 * (df_full_gauge_data['DC-183'].fillna(0).clip(lower=0)),
+            df_full_gauge_data["SCOTF_evap"].clip(lower=0).fillna(0)
+        ],
+        fl_storages = [
+            df_full_gauge_data["SCOTTS_FLAT_I_DER001"].fillna(0).clip(lower=0)
+
+        ],
+        fl_subtractions = [
+            0.2 * 0.15 * (df_full_gauge_data['DCN'].fillna(0).clip(lower=0) -
+            df_full_gauge_data['DS_CANAL_SPILLS_I_DER001'].fillna(0).clip(lower=0)),
+            df_full_gauge_data['11414205'].fillna(0).clip(lower=0),
+            0.5 * df_full_gauge_data['EXCELSIOR_DITCH'].fillna(0).clip(lower=0)
+        ]
+    )
+    # TODO this replicates the excel behaviour, but it is better to
+    # not do fillna and let NA values propagate natually for these
+    # timeseries
+    water_year = df_unimpaired.index.map(lambda x: x.year if x.month < 10 else (x.year + 1))
+
+    df_unimpaired.loc[(
+        df_full_gauge_data['11418500_I_DER001'].isna() |
+        df_full_gauge_data["SCOTF_evap"].isna() |
+        df_full_gauge_data["SCOTTS_FLAT_I_DER001"].isna() |
+        df_full_gauge_data['CSD'].isna() |
+        df_full_gauge_data['CHINA_DITCH'].isna() |
+        (df_full_gauge_data['DC-131'].isna() & (water_year > 1980)) | 
+        (df_full_gauge_data['DC-140_I_DER001'].isna() & (water_year > 1980)) | 
+        (df_full_gauge_data['DC-127'].isna() & (water_year > 1980)) | 
+        (df_full_gauge_data['DC-183'].isna() & (water_year > 1980)) | 
+        df_full_gauge_data['DCN'].isna() |
+        df_full_gauge_data['EXCELSIOR_DITCH'].isna() |
+        df_full_gauge_data['SNOW_MOUNTAIN'].isna() |
+        df_full_gauge_data['11414205'].isna()
+    ),] = pd.NA
+    
+    return df_unimpaired

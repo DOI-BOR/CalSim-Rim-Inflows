@@ -2717,7 +2717,7 @@ def I_SLT009(df_extended_data, df_rim_inflows):
     None
     """
     df_location = df_extended_data.loc[:,'SLATE CREEK ABOVE DIVERSION DAM']
-        # set anything negative to zero.
+    # set anything negative to zero.
     df_location.loc[df_location < 0] = 0
     df_location = df_location.round(2)
 
@@ -2725,4 +2725,118 @@ def I_SLT009(df_extended_data, df_rim_inflows):
     df_rim_inflows['I_SLT009'] = df_location
     # create the plots to compare the observed vs synthetic data (+1 as python range is non-inclusive)
     create_final_flow_plots(df_location, list(range(1960, 2021+1)), 'I_SLT009')
+
+
+def I_NBLDB(df_extended_data, df_rim_inflows):
+    """
+    Calculate the final rim inflow for CalSim. Location: I_NBLDB
+
+    Parameters
+    ----------
+    df_extended_data: dataframe
+        Dataframe of the extended data to pull from
+    df_rim_inflows: dataframe
+        Dataframe of rim inflows that have been calculated already
+
+    Returns
+    -------
+    None
+    """
+    df_location = df_extended_data.loc[:,'NEW_BULLARDS'] - df_rim_inflows['I_NFY029'] - df_rim_inflows['I_SLT009']
+    # redistribute negatives
+    df_location = remove_negatives_timeseries(df_location.to_frame("TAF")).TAF
+    # set anything negative to zero.
+    df_location.loc[df_location < 0] = 0
+    df_location = df_location.round(2)
+
+    # add into the rim inflow dataframe
+    df_rim_inflows['I_NBLDB'] = df_location
+    # create the plots to compare the observed vs synthetic data (+1 as python range is non-inclusive)
+    create_final_flow_plots(df_location, list(range(1960, 2021+1)), 'I_NBLDB')
+
+
+def I_ENGLB(df_extended_data, df_rim_inflows):
+    """
+    Calculate the final rim inflow for CalSim. Location: I_ENGLB
+
+    Parameters
+    ----------
+    df_extended_data: dataframe
+        Dataframe of the extended data to pull from
+    df_rim_inflows: dataframe
+        Dataframe of rim inflows that have been calculated already
+
+    Returns
+    -------
+    None
+    """
+    df_location = (
+        df_extended_data["11418000"]
+        - df_rim_inflows["I_BOWMN"]
+        - df_rim_inflows["I_FRDYC"]
+        - df_rim_inflows["I_SPLDG"]
+        - df_rim_inflows["I_OGN005"]
+        - df_rim_inflows["I_NFY029"]
+        - df_rim_inflows["I_SLT009"]
+        - df_rim_inflows["I_JKSMD"]
+        - df_rim_inflows["I_NBLDB"]
+        - df_rim_inflows["I_MFY013"]
+        - df_rim_inflows["I_SFY007"]
+        - df_rim_inflows["I_SFY048"]
+        - df_rim_inflows["I_LCBRF"]
+        - df_rim_inflows["I_FRNCH"]
+    )
+    # TODO: there is a redistribution tab, but the values are not used from that
+    # df_location = remove_negatives_timeseries(df_location.to_frame("TAF")).TAF
+    # set anything negative to zero.
+    df_location.loc[df_location < 0] = 0
+    df_location = df_location.round(2)
+
+    # add into the rim inflow dataframe
+    df_rim_inflows['I_ENGLB'] = df_location
+    # create the plots to compare the observed vs synthetic data (+1 as python range is non-inclusive)
+    create_final_flow_plots(df_location, list(range(1960, 2021+1)), 'I_ENGLB')
+
+
+def I_DER001(df_extended_data, df_rim_inflows):
+    """
+    Calculate the final rim inflow for CalSim. Location: I_DER001
+
+    Parameters
+    ----------
+    df_extended_data: dataframe
+        Dataframe of the extended data to pull from
+    df_rim_inflows: dataframe
+        Dataframe of rim inflows that have been calculated already
+
+    Returns
+    -------
+    None
+    """
+    df_total = df_extended_data.loc[:,'11418500'].copy()
+    # set anything negative to zero.
+    df_total.loc[df_total < 0] = 0
+    # TODO these watershed factors come from the excel sheet for I_DER001,
+    # Lauren (BOR) is working on a new method to automate that, so leaving it be
+    df_der001 = 0.28 * df_total
+    df_sfd003 = 0.08 * df_total
+    df_scotf = 0.32 * df_total
+    df_der004 = 0.32 * df_total
+
+    df_der001 = df_der001.round(2)
+    df_sfd003 = df_sfd003.round(2)
+    df_scotf = df_scotf.round(2)
+    df_der004 = df_der004.round(2)
+
+    # add into the rim inflow dataframe
+    df_rim_inflows['I_DER001'] = df_der001
+    df_rim_inflows['I_SFD003'] = df_sfd003
+    df_rim_inflows['I_SCOTF'] = df_scotf
+    df_rim_inflows['I_DER004'] = df_der004
+
+    # create the plots to compare the observed vs synthetic data (+1 as python range is non-inclusive)
+    create_final_flow_plots(df_der001, list(range(1936, 2021+1)), 'I_DER001')
+    create_final_flow_plots(df_sfd003, list(range(1936, 2021+1)), 'I_SFD003')
+    create_final_flow_plots(df_scotf, list(range(1936, 2021+1)), 'I_SCOTF')
+    create_final_flow_plots(df_der004, list(range(1936, 2021+1)), 'I_DER004')
 
