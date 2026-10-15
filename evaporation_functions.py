@@ -1254,10 +1254,10 @@ def calc_evap_ENGLB(s_dss_file, df_storage_data):
                 df_area_capacity['Elevation (ft)'].shift(1) - df_area_capacity['Elevation (ft)'])
     df_area_capacity.iloc[0, :] = df_area_capacity.iloc[0].fillna(0)
     # TODO BUG: The area here goes from 14 to 9.8 on row 2-3, it is not monotonically increasing,
-    # do we fix it after reproduction because excel also has this error?
-    # same problem on capacity at the ends in excel
+    # we should fix it after reproduction because excel also has this error.
+    # same problem on capacity at the ends in excel: Ask BOR on excel source
 
-    # make sure none of the areas are above a maximum of 938
+    # make sure none of the areas are above a maximum of 815 (comes from excel)
     df_area_capacity.loc[df_area_capacity['Area'] > 815, 'Area'] = 815
 
     # area and capacity fom Bulletin 17, no need to process anything

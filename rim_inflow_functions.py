@@ -2814,8 +2814,10 @@ def I_DER001(df_extended_data, df_rim_inflows):
     None
     """
     df_total = df_extended_data.loc[:,'11418500'].copy()
-        # set anything negative to zero.
+    # set anything negative to zero.
     df_total.loc[df_total < 0] = 0
+    # TODO these watershed factors come from the excel sheet for I_DER001,
+    # Lauren (BOR) is working on a new method to automate that, so leaving it be
     df_der001 = 0.28 * df_total
     df_sfd003 = 0.08 * df_total
     df_scotf = 0.32 * df_total
