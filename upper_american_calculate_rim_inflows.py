@@ -7,11 +7,11 @@ if __name__ == "__main__":
     i_final_year = 2021
 
     # this holds the already extended evap rates
-    s_evap_dss_path = r".\Inputs\evaporation_rates.dss"
+    s_evap_dss_path = r"./Inputs/evaporation_rates.dss"
 
     # option to plot comparison
     b_compareData = True
-    s_prev_rim_inflows_fn = "CS3_Sac_ReadAllInflowDatatoDSS_05.18.23.xlsm" # file path and name must be provided to plot/calculate comparison
+    s_prev_rim_inflows_fn = "CS3_Sac_ReadAllInflowDatatoDSS_05.18.23.csv" # file path and name must be provided to plot/calculate comparison
     s_prev_rim_inflow_sheet = "Inflows"
 
     # first if the needed output folders don't exist, create them
@@ -205,7 +205,7 @@ if __name__ == "__main__":
     if b_compareData:
 
         # read in data
-        df_reference = pd.read_excel(s_prev_rim_inflows_fn, sheet_name=s_prev_rim_inflow_sheet, skiprows=[0,2,3,4,5,6,7,8,9,10,11],header=0, index_col=0, parse_dates=True)
+        df_reference = pd.read_csv(s_prev_rim_inflows_fn, index_col=0, parse_dates=True)
 
         # calculate differences
         df_diffs = abs(df_reference[df_rim_inflows.columns] - df_rim_inflows).max().to_frame('Max Difference')
