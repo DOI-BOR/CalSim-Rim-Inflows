@@ -1002,7 +1002,7 @@ def calc_evap_FRNCH(s_dss_file, df_storage_data):
     df_area_capacity["Area"] = df_area_capacity["Area"].cummax()
 
     # calculate and set the evaporation
-    df_storage_data['FRNCH_evap'] = calculate_evap_data(df_storage_data.loc[:, "11414400_I_FRNCH"], df_evap_rates, df_area_capacity[['Capacity', 'Area']], b_set_zeros=True)
+    df_storage_data['FRNCH_evap'] = calculate_evap_data(df_storage_data.loc[:, "11414400"], df_evap_rates, df_area_capacity[['Capacity', 'Area']], b_set_zeros=True)
 
 
 def calc_evap_FRDYC(s_dss_file, df_storage_data):
@@ -1047,7 +1047,7 @@ def calc_evap_FRDYC(s_dss_file, df_storage_data):
     df_storage_data['FRDYC_evap'] = calculate_evap_data(df_storage_data.loc[:, "11414090"], df_evap_rates, df_area_capacity[['Capacity', 'Area']], b_set_zeros=True)
 
 
-def calc_evap_RLLNS(s_dss_file, df_storage_data, s_data_suffix=""):
+def calc_evap_RLLNS(s_dss_file, df_storage_data):
     """
     Calculate the evaporation amount for Rollins Reservoir. Follows the logic in CS3_I_RLLNS_Rev2022G. Updated to WY21 using calibrated evaporation rate ER_RLLNS from 'CS3_ER_RLLNS_rev1.xls
 
@@ -1057,8 +1057,6 @@ def calc_evap_RLLNS(s_dss_file, df_storage_data, s_data_suffix=""):
         Path to DSS file with evaporation rates
     df_storage_data: dataframe
         Storage data containing the reservoir
-    s_data_suffix: str
-        Suffix to add while accessing data (if there is duplicate data for the storage)
 
     Returns
     -------
@@ -1079,15 +1077,15 @@ def calc_evap_RLLNS(s_dss_file, df_storage_data, s_data_suffix=""):
     df_area_capacity.iloc[0, :] = df_area_capacity.iloc[0].fillna(0)
 
     df_area_capacity["Area"] = df_area_capacity["Area"].cummax()
-    df_storage_data.loc[:, f'RLLNS_evap{s_data_suffix}'] = calculate_evap_data(
-        df_storage_data.loc[:, f"11421800{s_data_suffix}"],
+    df_storage_data.loc[:, 'RLLNS_evap'] = calculate_evap_data(
+        df_storage_data.loc[:, "11421800"],
         df_evap_rates,
         df_area_capacity[['Capacity', 'Area']],
         b_set_zeros=True
     )
 
 
-def calc_evap_CMBIE(s_dss_file, df_storage_data, s_data_suffix=""):
+def calc_evap_CMBIE(s_dss_file, df_storage_data):
     """
     Calculate the evaporation amount for Combie Reservoir. Follows the logic in CS3_I_CMBIE_Rev2022G. Updated to WY21 using calibrated evaporation rate ER_CMBIE from 'CS3_ER_CMBIE_rev1.xls
 
@@ -1097,8 +1095,6 @@ def calc_evap_CMBIE(s_dss_file, df_storage_data, s_data_suffix=""):
         Path to DSS file with evaporation rates
     df_storage_data: dataframe
         Storage data containing the reservoir
-    s_data_suffix: str
-        Suffix to add while accessing data (if there is duplicate data for the storage)
 
     Returns
     -------
@@ -1124,15 +1120,15 @@ def calc_evap_CMBIE(s_dss_file, df_storage_data, s_data_suffix=""):
     # last 2 rows like excel
     df_area_capacity.loc[len(df_area_capacity), ['Capacity', 'Area']] = [9, 635.7075]
     df_area_capacity["Area"] = df_area_capacity["Area"].cummax()
-    df_storage_data.loc[:, f'CMBIE_evap{s_data_suffix}'] = calculate_evap_data(
-        df_storage_data.loc[:, f"LAKE_COMBIE{s_data_suffix}"],
+    df_storage_data.loc[:, 'CMBIE_evap'] = calculate_evap_data(
+        df_storage_data.loc[:, "LAKE_COMBIE"],
         df_evap_rates,
         df_area_capacity[['Capacity', 'Area']],
         b_set_zeros=False
     )
 
 
-def calc_evap_CMPFW(s_dss_file, df_storage_data, s_data_suffix=""):
+def calc_evap_CMPFW(s_dss_file, df_storage_data):
     """
     Calculate the evaporation amount for Camp Far West Reservoir. Follows the logic in CS3_I_CMBIE_Rev2022G. Updated to WY21 using calibrated evaporation rate ER_CMPFW from 'CS3_ER_CMPFW_rev1.xls
 
@@ -1142,8 +1138,6 @@ def calc_evap_CMPFW(s_dss_file, df_storage_data, s_data_suffix=""):
         Path to DSS file with evaporation rates
     df_storage_data: dataframe
         Storage data containing the reservoir
-    s_data_suffix: str
-        Suffix to add while accessing data (if there is duplicate data for the storage)
 
     Returns
     -------
@@ -1165,15 +1159,15 @@ def calc_evap_CMPFW(s_dss_file, df_storage_data, s_data_suffix=""):
 
     df_area_capacity.loc[len(df_area_capacity)-1, ['Capacity', 'Area']] = [125.0, 2050]
     df_area_capacity["Area"] = df_area_capacity["Area"].cummax()
-    df_storage_data.loc[:, f'CMPFW_evap{s_data_suffix}'] = calculate_evap_data(
-        df_storage_data.loc[:, f"CAMP_FAR{s_data_suffix}"],
+    df_storage_data.loc[:, 'CMPFW_evap'] = calculate_evap_data(
+        df_storage_data.loc[:, "CAMP_FAR"],
         df_evap_rates,
         df_area_capacity[['Capacity', 'Area']],
         b_set_zeros=True
     )
 
 
-def calc_evap_OBLDB(s_dss_file, df_storage_data, s_data_suffix=""):
+def calc_evap_OBLDB(s_dss_file, df_storage_data):
     """
     Calculate the evaporation amount for Old Bullards Bar. Follows the logic in CS3_I_NBLDB_Rev2022G. Updated to WY21 using calibrated evaporation rate ER_NBLDB from 'CS3_ER_NBLDB_rev1.xls
 
@@ -1183,9 +1177,6 @@ def calc_evap_OBLDB(s_dss_file, df_storage_data, s_data_suffix=""):
         Path to DSS file with evaporation rates
     df_storage_data: dataframe
         Storage data containing the reservoir
-    s_data_suffix: str
-        Suffix to add while accessing data (if there is duplicate data for the storage)
-
     Returns
     -------
     None
@@ -1196,8 +1187,8 @@ def calc_evap_OBLDB(s_dss_file, df_storage_data, s_data_suffix=""):
 
     df_area_capacity = pd.read_csv(r"./Area Capacities/OBLDB_AC.csv")
     # area and capacity fom Bulletin 17, no need to process anything
-    df_storage_data.loc[:, f'OBLDB_evap{s_data_suffix}'] = calculate_evap_data(
-        df_storage_data.loc[:, f"OLD_BULLARDS{s_data_suffix}"],
+    df_storage_data.loc[:, 'OBLDB_evap'] = calculate_evap_data(
+        df_storage_data.loc[:, "OLD_BULLARDS"],
         df_evap_rates,
         df_area_capacity[['Capacity', 'Area']],
         b_set_zeros=True
@@ -1226,7 +1217,7 @@ def calc_evap_NBLDB(s_dss_file, df_storage_data):
     df_area_capacity = pd.read_csv(r"./Area Capacities/NBLDB_AC.csv")
     # area and capacity fom Bulletin 17, no need to process anything
     df_storage_data.loc[:, f'NBLDB_evap'] = calculate_evap_data(
-        df_storage_data.loc[:, "11413515_I_NBLDB"],
+        df_storage_data.loc[:, "11413515"],
         df_evap_rates,
         df_area_capacity[['Capacity', 'Area']],
         b_set_zeros=True
@@ -1371,7 +1362,7 @@ def calc_evap_SCOTF(s_dss_file, df_storage_data):
     df_area_capacity['Area'] = df_area_capacity['Area (acres)']
     df_area_capacity["Area"] = df_area_capacity["Area"].cummax()
     df_storage_data.loc[:, f'SCOTF_evap'] = calculate_evap_data(
-        df_storage_data["SCOTTS_FLAT_I_DER001"],
+        df_storage_data["SCOTTS_FLAT"],
         df_evap_rates,
         df_area_capacity[['Capacity', 'Area']],
         b_set_zeros=False

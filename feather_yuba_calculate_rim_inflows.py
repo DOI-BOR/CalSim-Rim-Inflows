@@ -27,6 +27,12 @@ if __name__ == "__main__":
 
     print("Calculating evaporation...")
 
+    df_full_data.loc[:, [
+        "evap_JKSMD", "evap_JKSMD_I_NFY029", "evap_BOWMN", "evap_FRNCH", "evap_FRDYC",
+        "evap_RLLNS", "evap_CMBIE", "evap_CMPFW", "evap_MERLC", "evap_SPLDG", "evap_NBLDB",
+        "evap_OBLDB", "evap_ENGLB", "evap_SCOTF"]] = pd.NA
+    df_full_data = df_full_data.copy()  # to prefent fragmented dataframe
+
     # calculate the evaporation amounts for all of our reservoirs
     calc_evap_JKSMD(s_evap_dss_path, df_full_data)
     # two versions of evap data calculation: the NFY029 seems to use shorter table than JKSMD sheet
@@ -37,10 +43,6 @@ if __name__ == "__main__":
     calc_evap_RLLNS(s_evap_dss_path, df_full_data)
     calc_evap_CMBIE(s_evap_dss_path, df_full_data)
     calc_evap_CMPFW(s_evap_dss_path, df_full_data)
-    # there is two version of the storage data, but they give same values, so maybe we don't need it
-    calc_evap_RLLNS(s_evap_dss_path, df_full_data, s_data_suffix="_I_RLLNS")
-    calc_evap_CMBIE(s_evap_dss_path, df_full_data, s_data_suffix="_I_RLLNS")
-    calc_evap_CMPFW(s_evap_dss_path, df_full_data, s_data_suffix="_I_RLLNS")
     calc_evap_MERLC(s_evap_dss_path, df_full_data)
     calc_evap_SPLDG(s_evap_dss_path, df_full_data)
     calc_evap_NBLDB(s_evap_dss_path, df_full_data)
@@ -51,8 +53,17 @@ if __name__ == "__main__":
 
     df_full_data.to_csv('./Intermediate/feather_yuba_full_gauge_data_wevap.csv')
 
-    ### unimpairing the data
-    df_unimpaired_data = pd.DataFrame(index=ti_storage_range)
+    ### unimpairing the data (providing column names for speedup)
+    df_unimpaired_data = pd.DataFrame(
+        pd.NA,
+        index=ti_storage_range,
+        columns=[
+            '11409000', '11409400', '11422500', '11424000', '11414100', 'MERLC',
+            '11390000', '11414250', 'FERC', '11417500', 'NEW_BULLARDS', '11418000',
+            '11418500', '11409400_EXT', '11416500', '11408550', '11407900',
+            "11424000_ACC", '11408880', '11409000_I_MFY013'
+        ],
+    )
 
     print("Calculating unimpaired flows...")
 
@@ -89,10 +100,9 @@ if __name__ == "__main__":
     # extend some with the s-curve disaggregation
     extend_data(df_unimpaired_data['11409000'], df_full_data['11413000'], df_extended_data, df_synthetic_data, 1939, 2021, False, '11413000', i_x_start_year=1922, i_final_year=1968)
     extend_data(df_full_data.loc[:, "11409300"], df_unimpaired_data['11409400'], df_extended_data, df_synthetic_data, 1969, 1995, False, '11409400', i_x_start_year=1968, i_final_year=2000)
-    #  this has NA when it should not....
 
     ## BUG TODO
-    ### setting these values to NA is necessary; I thought the 1965 in the function arg 
+    ### setting these values to NA is necessary; I thought the 1965 in the function arg
     ### is supposed to understand the range it's supposed to read from....
     ### relevant code in s_curve_disaggregation below:
     ## dl_y_month_avgs = [0] + df_y_data.loc[i_y_start_year:i_y_end_year, :].mean(axis=0).tolist()
@@ -103,17 +113,17 @@ if __name__ == "__main__":
     # this depends on the extension after the first round of unimpaired calculation
     df_unimpaired_data['11409400_EXT'] = unimpaired_11409400_ext(df_full_data, df_extended_data, df_unimpaired_data)
     df_pos_unimpaired_data = remove_negatives_timeseries(df_unimpaired_data)
-    
+
     # final rim inflows
     df_rim_inflows = pd.DataFrame(index=ti_storage_range)
-    
+
     print("Calculating rim inflows...")
     # This is input to other nodes so we need it before others
     I_NFY029(df_extended_data, df_full_data, df_unimpaired_data, df_rim_inflows)
     I_OGN005(df_pos_unimpaired_data, df_rim_inflows)
     # doesn't seem to depend on NFY029 even if it's in excel sheet
     I_RLLNS(df_extended_data, df_unimpaired_data, df_rim_inflows)
-    
+
     # extend some with the s-curve disaggregation that depend on rim inflows
     extend_data(df_rim_inflows["I_NFY029"], df_full_data.loc[:, "WILSON_CREEK"], df_extended_data, df_synthetic_data, 1976, 2004, False, 'WILSON_CREEK', i_x_start_year=1922, i_final_year=i_final_year)
     extend_data(df_unimpaired_data['11390000'], df_pos_unimpaired_data['MERLC'], df_extended_data, df_synthetic_data, 1968, 1980, False, 'MERLC_MODELA', i_final_year=i_final_year)
@@ -133,7 +143,7 @@ if __name__ == "__main__":
     # might need to modify s_curve function to either use all available value and remove years parameter, or explicitly remove the other years from computation
     df_summed.loc[:"1960-09"] = pd.NA
     extend_data(df_rim_inflows["I_NFY029"], df_summed, df_extended_data, df_synthetic_data, 1961, i_final_year, False, 'SLATE CREEK ABOVE DIVERSION DAM', i_x_start_year=1922, i_final_year=i_final_year)
-    
+
     # these two unimpaired depend on WILSON CREEK
     df_unimpaired_data['11416500'] = unimpaired_11416500(df_full_data, df_extended_data).loc[ti_calculate_range]
     df_unimpaired_data['11408550'] = unimpaired_11408550(df_full_data, df_extended_data).loc[ti_calculate_range]
@@ -142,12 +152,14 @@ if __name__ == "__main__":
     # 11424000 acrretion requires RLLNS
     df_unimpaired_data["11424000_ACC"] = unimpaired_11424000_ACC(df_full_data, df_rim_inflows)
     df_unimpaired_data['11408880'] = unimpaired_11408880(df_full_data, df_extended_data)
-    # I_MFY013 calculates it in a different manner
+    # I_MFY013 calculates it in a different manner; previous
+    # calculation is for NFY, we can't use this method there as it
+    # depends on the flow at NFY indirectly
     df_unimpaired_data['11409000_I_MFY013'] = unimpaired_11409000_I_MFY013(df_full_data, df_extended_data)
     df_pos_unimpaired_data = remove_negatives_timeseries(df_unimpaired_data)
-    
+
     extend_data(df_rim_inflows["I_NFY029"], df_pos_unimpaired_data["11416500"], df_extended_data, df_synthetic_data, 1928, i_final_year, False, '11416500', i_x_start_year=1922, i_final_year=i_final_year)
-    
+
     extend_data(df_rim_inflows["I_NFY029"], df_unimpaired_data["11407900"], df_extended_data, df_synthetic_data, 1936, i_final_year, False, '11407900', i_x_start_year=1922, i_final_year=i_final_year, s_strange_sheet="JKSMD")
     extend_data(df_rim_inflows.loc[:, "I_NFY029"], df_unimpaired_data['11417500'], df_extended_data, df_synthetic_data, 1960, i_final_year, False, '11417500', i_x_start_year=1922, i_final_year=2021)
 
@@ -190,7 +202,7 @@ if __name__ == "__main__":
 
     I_SFY007(df_extended_data, df_rim_inflows)
     I_ENGLB(df_extended_data, df_rim_inflows)
-    
+
     # We have one extra date at the beginning for storage
     df_rim_inflows = df_rim_inflows.loc[ti_calculate_range]
     df_rim_inflows.to_csv('./Outputs/feather_yuba_rim_inflows.csv')

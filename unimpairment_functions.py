@@ -1380,12 +1380,12 @@ def unimpaired_11409000(df_full_gauge_data):
     )
 
     # only until 1968
-    df_storage = df_full_gauge_data.loc[:, "11407800_I_NFY029"]
+    df_storage = df_full_gauge_data.loc[:, "11407800"]
     
     df_unimpaired = unimpaired_flows(
         df_11409000,
         fl_additions=[
-            df_full_gauge_data.loc[:, "JKSMD_evap_I_NFY029"].fillna(0),
+            df_full_gauge_data.loc[:, "JKSMD_evap"].fillna(0),
             df_full_gauge_data.loc[:, "11408000"].fillna(0)
         ],
         # Gaurav: we should not fill storage with 0, we should do df_storage.diff().fillna(0)
@@ -1596,7 +1596,7 @@ def unimpaired_11422500(df_full_gauge_data):
             df_full_gauge_data.loc[:, "11426190"]
         ],
         fl_storages = [
-            df_full_gauge_data.loc[:, "11421800_I_RLLNS"].fillna(0)
+            df_full_gauge_data.loc[:, "11421800"].fillna(0)
         ]
     )
     return df_unimp_11422500
@@ -1641,13 +1641,13 @@ def unimpaired_11408880(df_full_gauge_data, df_extended_data):
         df_full_gauge_data["11408880"],
         fl_additions = [
             df_full_gauge_data["11408870"].clip(lower=0).fillna(0),
-            df_full_gauge_data["JKSMD_evap_I_NFY029"].clip(lower=0).fillna(0),
+            df_full_gauge_data["JKSMD_evap"].clip(lower=0).fillna(0),
             (
                 df_full_gauge_data["11408000"]
                 - df_extended_data["WILSON_CREEK"]
             ).clip(lower=0).fillna(0)
         ],
-        fl_storages = [df_full_gauge_data["11407800_I_NFY029"].fillna(0)]
+        fl_storages = [df_full_gauge_data["11407800"].fillna(0)]
     )
 
 
@@ -1672,13 +1672,13 @@ def unimpaired_11409000_I_MFY013(df_full_gauge_data, df_extended_data):
         ext_11409000,
         fl_additions = [
             df_full_gauge_data["11408870"].clip(lower=0).fillna(0),
-            df_full_gauge_data["JKSMD_evap_I_NFY029"].clip(lower=0).fillna(0),
+            df_full_gauge_data["JKSMD_evap"].clip(lower=0).fillna(0),
             (
                 df_full_gauge_data["11408000"]
                 - df_extended_data["WILSON_CREEK"]
             ).clip(lower=0).fillna(0)
         ],
-        fl_storages = [df_full_gauge_data["11407800_I_NFY029"].fillna(0)]
+        fl_storages = [df_full_gauge_data["11407800"].fillna(0)]
     )
 
 
@@ -1732,9 +1732,9 @@ def unimpaired_11424000(df_full_gauge_data):
             df_full_gauge_data.loc[:, "11426190"]
         ],
         fl_storages = [
-            df_full_gauge_data.loc[:, "LAKE_COMBIE_I_RLLNS"].fillna(0),
-            df_full_gauge_data.loc[:, "CAMP_FAR_I_RLLNS"].fillna(0),
-            df_full_gauge_data.loc[:, "11421800_I_RLLNS"].fillna(0)
+            df_full_gauge_data.loc[:, "LAKE_COMBIE"].fillna(0),
+            df_full_gauge_data.loc[:, "CAMP_FAR"].fillna(0),
+            df_full_gauge_data.loc[:, "11421800"].fillna(0)
         ]
     )
     return df_unimp_11424000
@@ -1764,7 +1764,7 @@ def unimpaired_11424000_ACC(df_full_gauge_data, df_rim_inflows):
             df_full_gauge_data.loc[:, "11414170"] * (1 - 0.078),
             (
                 df_full_gauge_data.loc[:, "11414200"]
-                -  df_full_gauge_data.loc[:, "11414205_I_CMBIE"] / (1 - 0.125)
+                -  df_full_gauge_data.loc[:, "11414205_I_RLLNS"] / (1 - 0.125)
             ).clip(lower=0).fillna(0),
         ],
         fl_subtractions =[
@@ -1922,7 +1922,7 @@ def unimpaired_11417500(df_full_gauge_data):
             df_full_gauge_data["11414400"].fillna(0),
             df_full_gauge_data["11414440"].fillna(0),
             df_full_gauge_data["11414465"].fillna(0),
-            df_full_gauge_data["11414090_I_SFY007"].fillna(0),
+            df_full_gauge_data["11414090"].fillna(0),
             df_full_gauge_data["11414140"].fillna(0),
         ],
         fl_subtractions = [
@@ -1935,7 +1935,7 @@ def unimpaired_11417500(df_full_gauge_data):
     df_unimpaired.loc[
         df_full_gauge_data["11417500"].isna()
         | df_full_gauge_data["11415500"].isna()
-        | df_full_gauge_data["11414090_I_SFY007"].isna()
+        | df_full_gauge_data["11414090"].isna()
         | df_full_gauge_data["11414140"].isna()
     ] = pd.NA
     return df_unimpaired
@@ -1976,11 +1976,11 @@ def unimpaired_11418000(df_full_gauge_data):
             df_full_gauge_data["OLD_BULLARDS_BAR"].fillna(0),
             df_full_gauge_data["11407800_I_ENGLB"].fillna(0),
             df_full_gauge_data["11414400"].fillna(0),
-            df_full_gauge_data["11414465_I_ENGLB"].fillna(0),
-            df_full_gauge_data["11414440_I_ENGLB"].fillna(0),
+            df_full_gauge_data["11414465"].fillna(0),
+            df_full_gauge_data["11414440"].fillna(0),
             df_full_gauge_data["11415500"].fillna(0),
             df_full_gauge_data["11414090_I_ENGLB"].fillna(0),
-            df_full_gauge_data["11414140_I_ENGLB"].fillna(0),
+            df_full_gauge_data["11414140"].fillna(0),
             df_full_gauge_data["ENGLEBRIGHT_DAM"].fillna(0),
         ],
     )
@@ -2018,7 +2018,7 @@ def unimpaired_NEW_BULLARDS(df_full_gauge_data):
             df_full_gauge_data["11413250"].clip(lower=0).fillna(0),
         ],
         fl_storages = [
-            df_full_gauge_data["11413515_I_NBLDB"].fillna(0),
+            df_full_gauge_data["11413515"].fillna(0),
             df_full_gauge_data["OLD_BULLARDS_BAR"].fillna(0),
         ],
         fl_subtractions = [
@@ -2033,6 +2033,7 @@ def unimpaired_NEW_BULLARDS(df_full_gauge_data):
     return df_unimpaired
 
 
+# Note this is one of the most computationally extensive function in yuba-bear
 def unimpaired_FERC():
     """Calculate the unimpaired flow using I_LCBRF sheet for Texas, Fall, and Rucker Creeks
      Follows the logic from CS3_I_LCBRF_Rev2022G.xlsm
@@ -2130,7 +2131,7 @@ def unimpaired_11418500(df_full_gauge_data):
             df_full_gauge_data["SCOTF_evap"].clip(lower=0).fillna(0)
         ],
         fl_storages = [
-            df_full_gauge_data["SCOTTS_FLAT_I_DER001"].fillna(0).clip(lower=0)
+            df_full_gauge_data["SCOTTS_FLAT"].fillna(0).clip(lower=0)
 
         ],
         fl_subtractions = [
@@ -2148,7 +2149,7 @@ def unimpaired_11418500(df_full_gauge_data):
     df_unimpaired.loc[(
         df_full_gauge_data['11418500_I_DER001'].isna() |
         df_full_gauge_data["SCOTF_evap"].isna() |
-        df_full_gauge_data["SCOTTS_FLAT_I_DER001"].isna() |
+        df_full_gauge_data["SCOTTS_FLAT"].isna() |
         df_full_gauge_data['CSD'].isna() |
         df_full_gauge_data['CHINA_DITCH'].isna() |
         (df_full_gauge_data['DC-131'].isna() & (water_year > 1980)) | 
