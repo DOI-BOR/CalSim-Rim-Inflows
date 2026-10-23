@@ -1785,11 +1785,7 @@ def unimpaired_11424000_ACC(df_full_gauge_data, df_rim_inflows):
         pd.DataFrame({
         "a": df_full_gauge_data.loc[:, "11424000"],
         "b": df_full_gauge_data.loc[:, "11423500"] * 1.05 - df_full_gauge_data.loc[:, "CFWID_DIVERSIONS"]
-    }).max(axis=1) - df_ext_BearBwRollins,
-        # TODO: df_ext_BearBwRollins has negative values and
-        # unimpaired_flows function removes that, which messes up the
-        # reproduction (moving it here now instead of fl_subtractions,
-        # not sure if -ve is valid)
+    }).max(axis=1),
         fl_additions=[
             df_full_gauge_data.loc[:, "CMPFW_evap"].clip(lower=0).fillna(0),
             df_full_gauge_data.loc[:, "CMBIE_evap"].clip(lower=0).fillna(0),
@@ -1800,7 +1796,7 @@ def unimpaired_11424000_ACC(df_full_gauge_data, df_rim_inflows):
         ],
         fl_subtractions = [
             df_DS_CanalSpills,
-            # df_ext_BearBwRollins # see note above
+            df_ext_BearBwRollins,
             ((
                 df_full_gauge_data.loc[:, "DCN"] - df_DS_CanalSpills
             ).clip(lower=0).fillna(0) + df_full_gauge_data.loc[:, "CSD"])*0.2*0.85
@@ -1903,9 +1899,6 @@ def unimpaired_11417500(df_full_gauge_data):
          Unpaired flow for current station
      """
     df_temp = df_full_gauge_data["11408000"].clip(lower=0)
-    # TODO
-    # Excel sheet for NFY007 does not have data for this station for WY 2021
-    df_temp.loc["2020-10":] = 0
     df_unimpaired = unimpaired_flows(
         df_full_gauge_data["11417500"],
         fl_additions = [
@@ -1934,6 +1927,9 @@ def unimpaired_11417500(df_full_gauge_data):
     # timeseries
     df_unimpaired.loc[
         df_full_gauge_data["11417500"].isna()
+        # these three are storage, so we can only propagate NA here if
+        # we use the .diff() directly insead of going through the
+        # unimpaired_flows function
         | df_full_gauge_data["11415500"].isna()
         | df_full_gauge_data["11414090"].isna()
         | df_full_gauge_data["11414140"].isna()

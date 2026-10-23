@@ -33,6 +33,10 @@ def vba_like_factor_calc_I_RLLNS(df_xcum, dl_tcum, dl_scum):
     df_ycum: pd.DataFrame
         Cumulative proportions of the y values (location data) for each water year (rows) and months (columns)
     """
+    # should be unused except for replication; the error should help
+    # check if we're still using it
+    raise NotImplementedError("This function is only valid for replication")
+
     df_sncum = np.empty_like(df_xcum)
     dl_prev_sncum = np.array([np.nan for _ in  range(df_xcum.shape[1])])
     for i_row in range(df_xcum.shape[0]):
@@ -111,12 +115,6 @@ def s_curve_disaggregation(df_x_data, df_y_data, i_x_start_year, i_x_end_year, i
     # if working on COL003 (11315000), we need to use only 1944 to 2021 for monthly averages
     if (s_strange_sheet == 'COL003'):
         dl_x_month_avgs = [0] + df_x_data.loc[1944:i_y_end_year, :].mean(axis=0).tolist()
-    elif (s_strange_sheet == 'DER001'):
-        # TODO: BUG FIXME
-        # IDK why but the 2016 row on the Model A tab has data for total instead of 2016
-        df_x_temp = df_x_data.loc[i_y_start_year:i_y_end_year, :].copy()
-        df_x_temp.loc[2016] = df_x_data.mean()
-        dl_x_month_avgs = [0] + df_x_temp.mean(axis=0).tolist()
     else:
         dl_x_month_avgs = [0] + df_x_data.loc[i_y_start_year:i_y_end_year, :].mean(axis=0).tolist()
 
@@ -177,16 +175,6 @@ def s_curve_disaggregation(df_x_data, df_y_data, i_x_start_year, i_x_end_year, i
     # these are the scaled version of the df_x_cumulative_proportions numbers
     df_y_cumulative_proportions = dl_y_avg_cumulative_proportions[il_indices- 1] + df_factors * (dl_y_avg_cumulative_proportions[il_indices] - dl_y_avg_cumulative_proportions[il_indices- 1])
 
-    # TODO BUG FIX LATER
-    # I_RLLNS has negatives values and the VBA code there has a bug
-    # that makes it reuse values from last iteration instead of using the maximum value
-    # The line below fails because TNCUM(K) is > 1 which means > 14 not = 14 (fixing it
-    # matches the excel with python, but we can't change excel in this step)
-    # MODELB VBA Code Line 70:
-    # If (TNCUM(K) <= TCUM(N)) Or (TNCUM(K) + N = 14) Then
-    if s_strange_sheet == "RLLNS":
-        df_y_cumulative_proportions = vba_like_factor_calc_I_RLLNS(df_x_cumulative_proportions, dl_x_avg_cumulative_proportions, dl_y_avg_cumulative_proportions)
-
     # now we will fit a linear regression on all the data we have y data for even if it's larger than the y window
     # first get the year totals
     df_x_year_totals = pd.DataFrame(df_x_data.sum(axis=1))
@@ -211,14 +199,6 @@ def s_curve_disaggregation(df_x_data, df_y_data, i_x_start_year, i_x_end_year, i
 
     # do the reverse of a cumulative sum to get the scaled version of df_x_data
     df_y_data_synthetic = pd.DataFrame(np.diff(df_y_cumulative_totals, prepend=0), index=df_x_data.index, columns=df_x_data.columns)
-
-    # TODO HACK: remove after replication is successful
-    if s_strange_sheet == "MERLC_MODELB":
-        # the calculation is outdated, so we overwrite it with the previous results
-        df_y_data_synthetic = pd.read_csv("./Inputs/I_MERLC-MODELB.csv", index_col="Water Year")
-    elif s_strange_sheet == "SPLDG_MODELC":
-        # the calculation is outdated, so we overwrite it with the previous results
-        df_y_data_synthetic = pd.read_csv("./Inputs/I_SPLDG-MODELC.csv", index_col="Water Year")
 
     # put the range of original y to keep back in
     df_y_data_output = df_y_data_synthetic.copy()
