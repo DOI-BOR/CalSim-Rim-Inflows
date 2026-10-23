@@ -356,6 +356,28 @@ def read_data(s_path):
     return df_data.copy()
 
 
+def get_taf(df_input) -> pd.Series:
+    """
+    Get a pandas series from the input data. In case a dataframe is passed with TAF column.
+
+    Parameters
+    ----------
+    df_input: pandas series or dataframe
+        Input series or dataframe
+
+    Returns
+    -------
+    df_input: series
+        input series data or series from the TAF column of the dataframe
+    """
+    if isinstance(df_input, pd.DataFrame):
+        return df_input['TAF']
+    elif isinstance(df_input, pd.Series):
+        return df_input
+    else:
+        raise ValueError(f"Series requested, {type(df_input)} found")
+
+
 def unimpaired_flows(df_impaired, fl_storages=[], fl_additions=[], fl_subtractions=[]):
     """
     Unimpaired impaired flows. Little QA/QC for negative values then does impaired flow + storage difference + upstreams - downstreams
@@ -377,45 +399,25 @@ def unimpaired_flows(df_impaired, fl_storages=[], fl_additions=[], fl_subtractio
         Unimpaired flow data
     """
 
-    if isinstance(df_impaired, pd.DataFrame):
-        df_impaired = df_impaired['TAF']
-
     # for each data sets except for the impaired flow set anything below zero to zero
-    for i_index, df_curr in enumerate(fl_storages):
-        if isinstance(df_curr, pd.DataFrame):
-            df_curr = df_curr['TAF']
-        fl_storages[i_index] = df_curr.copy()
-        fl_storages[i_index].loc[fl_storages[i_index]< 0] = 0
+    df_delta_storages = pd.DataFrame(
+        {i:get_taf(s).clip(lower=0) for i,s in enumerate(fl_storages)},
+        index=df_impaired.index
+    ).diff().sum(axis=1)
+    df_additions = pd.DataFrame(
+        {i:get_taf(s).clip(lower=0) for i,s in enumerate(fl_additions)},
+        index=df_impaired.index
+    ).sum(axis=1)
+    df_subtractions = pd.DataFrame(
+        {i:get_taf(s).clip(lower=0) for i,s in enumerate(fl_subtractions)},
+        index=df_impaired.index
+    ).sum(axis=1)
 
-    for i_index, df_curr in enumerate(fl_additions):
-        if isinstance(df_curr, pd.DataFrame):
-            df_curr = df_curr['TAF']
-        fl_additions[i_index] = df_curr.copy()
-        fl_additions[i_index].loc[fl_additions[i_index] < 0] = 0
-
-    for i_index, df_curr in enumerate(fl_subtractions):
-        if isinstance(df_curr, pd.DataFrame):
-            df_curr = df_curr['TAF']
-        fl_subtractions[i_index] = df_curr.copy()
-        fl_subtractions[i_index].loc[fl_subtractions[i_index]< 0] = 0
-
-    # start with the impaired data
-    df_unimpaired = df_impaired.copy()
-
-    # for each reservoir we want to add in the difference in storage
-    for df_storage in fl_storages:
-        df_unimpaired = df_unimpaired + df_storage - df_storage.shift(1)
-
-    # everything upstream gets added in
-    for df_upstream in fl_additions:
-        df_unimpaired = df_unimpaired + df_upstream
-
-    # everything downstream gets subtracted out
-    for df_downstream in fl_subtractions:
-        df_unimpaired = df_unimpaired - df_downstream
+    # water balance
+    df_unimpaired = get_taf(df_impaired) + df_delta_storages + df_additions - df_subtractions
 
     # return dataframe
-    return df_unimpaired.copy()
+    return df_unimpaired
 
 
 def timeseries_to_monthly(df_timeseries):
@@ -432,29 +434,15 @@ def timeseries_to_monthly(df_timeseries):
     df_monthly: dataframe
         Data in new format
     """
-    # if it is a series, cover to a frame
-    if isinstance(df_timeseries, pd.Series):
-        df_timeseries_copy = df_timeseries.to_frame('TAF')
-    else:
-        # copy so we don't edit the original
-        df_timeseries_copy = df_timeseries.copy()
-
-    # add the month and water year
-    df_timeseries_copy['Month'] = df_timeseries_copy.index.month
-    df_timeseries_copy['Water Year'] = np.where(df_timeseries_copy.index.month < 10, df_timeseries_copy.index.year, df_timeseries_copy.index.year + 1)
-
-    # create the output dataframe with the years as the rows and the months as the columns
-    df_monthly = pd.DataFrame(index=df_timeseries_copy['Water Year'].unique(), columns=[10, 11, 12, 1, 2, 3, 4, 5, 6 ,7 ,8, 9], dtype='float')
-
-    # loop through and insert the data
-    for month in df_timeseries_copy['Month'].unique():
-        df_monthly.loc[df_timeseries_copy[df_timeseries_copy['Month'] == month]['Water Year'], month] = df_timeseries_copy[df_timeseries_copy['Month'] == month]['TAF'].values
-
+    df_timeseries = get_taf(df_timeseries).copy()
+    water_years = df_timeseries.index.map(water_year)
+    months = df_timeseries.index.month
+    df_timeseries.index = [water_years, months]
+    # pivot the table to make water year as rows and months as columns, then reorder months
+    df_monthly = df_timeseries.unstack().loc[:, [10, 11, 12, 1, 2, 3, 4, 5, 6 ,7 ,8, 9]]
     # reset the column names, s curve disaggregation needs this
     df_monthly.columns = range(df_monthly.columns.size)
-
-    # return the dataframe
-    return df_monthly.copy()
+    return df_monthly
 
 
 def monthly_to_timeseries(df_monthly):
@@ -533,6 +521,22 @@ def remove_negatives(df_monthly):
     return df_monthly_positive.copy()
 
 
+def water_year(date):
+    "Get water year from a datetime"
+    return date.year + int(date.month>9)
+
+
+def redistribute_negatives(flows, water_years):
+    "remove all negative values and redistribute it across water year"
+    total = flows.groupby(water_years).sum().astype(float) # int type will error on division by zero
+    total_positives = flows.groupby(water_years).agg(
+        lambda x: sum(v for v in x if pd.notna(v) and v > 0)
+    )
+    ratio = total.div(total_positives).replace([np.inf, -np.inf], np.nan)
+    flows_pos = flows.clip(lower=0) * water_years.map(ratio)
+    return flows_pos
+
+
 def remove_negatives_timeseries(df_timeseries):
     """
     Removes negative values while preserving the water year totals. Distributes the 'negative water' over the rest of the months
@@ -548,36 +552,9 @@ def remove_negatives_timeseries(df_timeseries):
         Data with negatives removed
     """
 
-    # start with a copy of the data
-    df_timeseries_positive = df_timeseries.copy()
-
-    # get the columns before we add any
-    ls_cols = df_timeseries.columns.tolist()
-
-    # get the water year
-    df_timeseries_positive['Water Year'] = np.where(df_timeseries_positive.index.month < 10, df_timeseries_positive.index.year, df_timeseries_positive.index.year + 1)
-
-    # get the yearly total and yearly total excluding negatives
-    # replace 0s with nans, these come from summing only nans
-    df_total = df_timeseries_positive.groupby(['Water Year'])[ls_cols].sum().replace(0, np.nan)
-    df_pos_totals = df_timeseries_positive[df_timeseries_positive >0].groupby(['Water Year'])[ls_cols].sum().replace(0, np.nan)
-
-    # set negatives to zero
-    df_timeseries_positive[df_timeseries_positive < 0] = 0
-
-    # add the totals back into the frame based on the water year
-    df_timeseries_positive = df_timeseries_positive.merge(df_pos_totals, how='left', left_on='Water Year', right_index=True, suffixes=['', '_pos_tot'])
-    df_timeseries_positive = df_timeseries_positive.merge(df_total, how='left', left_on='Water Year', right_index=True, suffixes=['', '_tot'])
-
-    # for each column, multiply by total and divide byt the positive total to get the scaled values
-    for col in ls_cols:
-        df_timeseries_positive[col] = df_timeseries_positive[col] * df_timeseries_positive[col+'_tot'] / df_timeseries_positive[col+'_pos_tot']
-
-    # remove all the extra columns we have created
-    df_timeseries_positive = df_timeseries_positive[ls_cols]
-
-    # return the positive frame
-    return df_timeseries_positive
+    # keeping it for legacy reasons
+    df_water_years = df_timeseries.index.map(water_year)
+    return df_timeseries.apply(lambda col: redistribute_negatives(col, df_water_years))
 
 
 def area_scale(df_values, d_area_1, d_area_2):

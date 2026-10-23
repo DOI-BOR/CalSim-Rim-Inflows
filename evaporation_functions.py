@@ -8,6 +8,9 @@ from pydsstools.heclib.utils import dss_logging
 dss_logging.config(level='None')
 
 
+dss_files = dict()
+
+
 def read_evap_data(s_path, s_b_part):
     """
     Reads in the evap rates from the evap DSS file
@@ -23,9 +26,13 @@ def read_evap_data(s_path, s_b_part):
     df_dss_data: dataframe
         Data from the DSS file corresponding to the B part
     """
+    global dss_files
 
-    # open the DSS file
-    o_file = HecDss.Open(s_path)
+    # open the DSS file; cache previously open files (we're basically
+    # only opening one file, so best to cache it)
+    if s_path not in dss_files:
+        dss_files[s_path] = HecDss.Open(s_path)
+    o_file = dss_files[s_path]
 
     # get the potential paths for this b part
     ls_paths = o_file.search_path(f"/CALSIM/{s_b_part}/EVAPORATION-RATE/*/*/*/")
