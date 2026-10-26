@@ -876,7 +876,7 @@ def calc_evap_JKSMD_I_NFY029(s_dss_file, df_storage_data):
     df_area_capacity.loc[len(df_area_capacity), ['Capacity', 'Area']] = [71.0, 938]
 
     # calculate and set the evaporation
-    df_storage_data['JKSMD_evap_I_NFY029'] = calculate_evap_data(df_storage_data.loc[:, "11407800_I_NFY029"], df_evap_rates, df_area_capacity[['Capacity', 'Area']], b_set_zeros=True)
+    df_storage_data['JKSMD_evap_I_NFY029'] = calculate_evap_data(df_storage_data.loc[:, "11407800"], df_evap_rates, df_area_capacity[['Capacity', 'Area']], b_set_zeros=True)
 
 
 def calc_evap_JKSMD(s_dss_file, df_storage_data):
@@ -1188,7 +1188,7 @@ def calc_evap_OBLDB(s_dss_file, df_storage_data):
     df_area_capacity = pd.read_csv(r"./Area Capacities/OBLDB_AC.csv")
     # area and capacity fom Bulletin 17, no need to process anything
     df_storage_data.loc[:, 'OBLDB_evap'] = calculate_evap_data(
-        df_storage_data.loc[:, "OLD_BULLARDS"],
+        df_storage_data.loc[:, "OLD_BULLARDS_BAR"],
         df_evap_rates,
         df_area_capacity[['Capacity', 'Area']],
         b_set_zeros=True
