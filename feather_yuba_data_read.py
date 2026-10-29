@@ -11,11 +11,12 @@ if __name__ == "__main__":
     s_station_list = r'./Inputs/feather_yuba_data_stations.csv'
 
     df_station_list = pd.read_csv(s_station_list, header=0, dtype=str)
-
-    # USGS stations to pull data for
-    sl_usgs_stations = df_station_list[df_station_list['Source'] == 'USGS']['Station ID'].to_list()
-    sl_cdec_stations = df_station_list[df_station_list['Source'] == 'CDEC']['Station ID'].to_list()
-    sl_other_stations = df_station_list[df_station_list['Source'] == 'Other']['Station ID'].to_list()
+    df_station_list = df_station_list.loc[df_station_list.Availability != "Not Needed (Historical)"]
+    
+    # USGS stations to pull data for: take unique list
+    sl_usgs_stations = list(set(df_station_list[df_station_list['Source'] == 'USGS']['Station ID']))
+    sl_cdec_stations = list(set(df_station_list[df_station_list['Source'] == 'CDEC']['Station ID']))
+    sl_other_stations = list(set(df_station_list[df_station_list['Source'] == 'Other']['Station ID']))
 
     # time range to pull USGS data for
     s_start_date = '2021-10-01'
@@ -42,5 +43,26 @@ if __name__ == "__main__":
 
     # combine the new data with the previous data
     df_full_data = read_previous_data(s_previous_data, df_gauge_data_monthly_taf)
+
+    # The variations of the gage data from excel, should still use the same gage data for extension
+    d_custom_gages = {
+        "11414090_I_ENGLB": "11414090",
+        "11414205_I_RLLNS": "11414205",
+        "11414400_I_BOWMN": "11414400",
+        "11414440_I_BOWMN": "11414440",
+        "11414465_I_BOWMN": "11414465",
+        "DS_CANAL_SPILLS_I_DER001": "DCN",
+    }
+    for s_custom, s_gage in d_custom_gages.items():
+        df_full_data.loc[s_start_date:s_end_date, s_custom] = df_full_data.loc[s_start_date:s_end_date, s_gage]
+    # Assume after 2003 abandoned (set values to 0)
+    df_full_data.loc[s_start_date:s_end_date, "CHINA_DITCH"] = 0
+    # 01/90 onwards Assume zero as diversion abandoned
+    df_full_data.loc[s_start_date:s_end_date, "BVID_DIVERSION"] = 0
+    # canal discontinued after 1967
+    df_full_data.loc[s_start_date:s_end_date, "EXCELSIOR_DITCH"] = 0
+    # Included in Cascade Canal After 1974
+    df_full_data.loc[s_start_date:s_end_date, "SNOW_MOUNTAIN"] = 0
+    
     # save to a csv
     df_full_data.to_csv('./Intermediate/feather_yuba_full_gauge_data.csv')

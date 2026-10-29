@@ -28,15 +28,13 @@ if __name__ == "__main__":
     print("Calculating evaporation...")
 
     df_full_data.loc[:, [
-        "evap_JKSMD", "evap_JKSMD_I_NFY029", "evap_BOWMN", "evap_FRNCH", "evap_FRDYC",
-        "evap_RLLNS", "evap_CMBIE", "evap_CMPFW", "evap_MERLC", "evap_SPLDG", "evap_NBLDB",
+        "evap_JKSMD", "evap_BOWMN", "evap_FRNCH", "evap_FRDYC", "evap_RLLNS",
+        "evap_CMBIE", "evap_CMPFW", "evap_MERLC", "evap_SPLDG", "evap_NBLDB",
         "evap_OBLDB", "evap_ENGLB", "evap_SCOTF"]] = pd.NA
     df_full_data = df_full_data.copy()  # to prefent fragmented dataframe
 
     # calculate the evaporation amounts for all of our reservoirs
     calc_evap_JKSMD(s_evap_dss_path, df_full_data)
-    # two versions of evap data calculation: the NFY029 seems to use shorter table than JKSMD sheet
-    calc_evap_JKSMD_I_NFY029(s_evap_dss_path, df_full_data)
     calc_evap_BOWMN(s_evap_dss_path, df_full_data)
     calc_evap_FRNCH(s_evap_dss_path, df_full_data)
     calc_evap_FRDYC(s_evap_dss_path, df_full_data)

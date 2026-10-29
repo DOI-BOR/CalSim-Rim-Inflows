@@ -1970,7 +1970,7 @@ def unimpaired_11418000(df_full_gauge_data):
         fl_storages = [
             df_full_gauge_data["11413515"].fillna(0),
             df_full_gauge_data["OLD_BULLARDS_BAR"].fillna(0),
-            df_full_gauge_data["11407800_I_ENGLB"].fillna(0),
+            df_full_gauge_data["11407800"].fillna(0),
             df_full_gauge_data["11414400"].fillna(0),
             df_full_gauge_data["11414465"].fillna(0),
             df_full_gauge_data["11414440"].fillna(0),
@@ -2114,13 +2114,13 @@ def unimpaired_11418500(df_full_gauge_data):
      """
 
     df_unimpaired = unimpaired_flows(
-        df_full_gauge_data["11418500_I_DER001"],
+        df_full_gauge_data["11418500"],
         fl_additions = [
             df_full_gauge_data['CSD'].fillna(0).clip(lower=0) * (1 - 0.2 * 0.15),
             df_full_gauge_data['DCN'].fillna(0).clip(lower=0),
             0.9 * (df_full_gauge_data['SNOW_MOUNTAIN'].fillna(0).clip(lower=0)),
             0.9 * (df_full_gauge_data['DC-131'].fillna(0).clip(lower=0)),
-            0.9 * (df_full_gauge_data['DC-140_I_DER001'].fillna(0).clip(lower=0)),
+            0.9 * (df_full_gauge_data['DC-140'].fillna(0).clip(lower=0)),
             0.9 * (df_full_gauge_data['DC-127'].fillna(0).clip(lower=0)),
             0.9 * (df_full_gauge_data['CHINA_DITCH'].fillna(0).clip(lower=0)),
             0.9 * (df_full_gauge_data['DC-183'].fillna(0).clip(lower=0)),
@@ -2143,13 +2143,13 @@ def unimpaired_11418500(df_full_gauge_data):
     water_year = df_unimpaired.index.map(lambda x: x.year if x.month < 10 else (x.year + 1))
 
     df_unimpaired.loc[(
-        df_full_gauge_data['11418500_I_DER001'].isna() |
+        df_full_gauge_data['11418500'].isna() |
         df_full_gauge_data["SCOTF_evap"].isna() |
         df_full_gauge_data["SCOTTS_FLAT"].isna() |
         df_full_gauge_data['CSD'].isna() |
         df_full_gauge_data['CHINA_DITCH'].isna() |
         (df_full_gauge_data['DC-131'].isna() & (water_year > 1980)) | 
-        (df_full_gauge_data['DC-140_I_DER001'].isna() & (water_year > 1980)) | 
+        (df_full_gauge_data['DC-140'].isna() & (water_year > 1980)) | 
         (df_full_gauge_data['DC-127'].isna() & (water_year > 1980)) | 
         (df_full_gauge_data['DC-183'].isna() & (water_year > 1980)) | 
         df_full_gauge_data['DCN'].isna() |
