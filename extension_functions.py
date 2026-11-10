@@ -379,15 +379,17 @@ def unimpaired_flows(df_impaired, fl_storages=[], fl_additions=[], fl_subtractio
         Unimpaired flow data
     """
 
-    # for each data sets except for the impaired flow set anything below zero to zero
+    # we get TAF storage, set negatives to 0; get difference series and sum all delta storages
     df_delta_storages = pd.DataFrame(
         {i:get_taf(s).clip(lower=0) for i,s in enumerate(fl_storages)},
         index=df_impaired.index
     ).diff().sum(axis=1)
+    # sum all TAF additions setting negatives to 0
     df_additions = pd.DataFrame(
         {i:get_taf(s).clip(lower=0) for i,s in enumerate(fl_additions)},
         index=df_impaired.index
     ).sum(axis=1)
+    # sum all TAF substractions setting negatives to 0
     df_subtractions = pd.DataFrame(
         {i:get_taf(s).clip(lower=0) for i,s in enumerate(fl_subtractions)},
         index=df_impaired.index
@@ -414,7 +416,10 @@ def timeseries_to_monthly(df_timeseries):
     df_monthly: dataframe
         Data in new format
     """
+    # need to copy because get_taf returns reference to the original
+    # and we modify the index later
     df_timeseries = get_taf(df_timeseries).copy()
+    # get water year and the month
     water_years = df_timeseries.index.map(water_year)
     months = df_timeseries.index.month
     df_timeseries.index = [water_years, months]
@@ -503,16 +508,19 @@ def remove_negatives(df_monthly):
 
 def water_year(date):
     "Get water year from a datetime"
-    return date.year + int(date.month>9)
+    return date.year + int(date.month > 9)
 
 
 def redistribute_negatives(flows, water_years):
     "remove all negative values and redistribute it across water year"
     total = flows.groupby(water_years).sum().astype(float) # int type will error on division by zero
     total_positives = flows.groupby(water_years).agg(
+        # only sum if the value is positive and not NA (for each water year)
         lambda x: sum(v for v in x if pd.notna(v) and v > 0)
     )
+    # calculate the ratio of total / total_positives for each water year
     ratio = total.div(total_positives).replace([np.inf, -np.inf], np.nan)
+    # multiply positive flows with their ratio for each water year and set negatives to zero
     flows_pos = flows.clip(lower=0) * water_years.map(ratio)
     return flows_pos
 
@@ -532,7 +540,7 @@ def remove_negatives_timeseries(df_timeseries):
         Data with negatives removed
     """
 
-    # keeping it for legacy reasons
+    # keeping it for legacy reasons; calculate water year only once for all columns
     df_water_years = df_timeseries.index.map(water_year)
     return df_timeseries.apply(lambda col: redistribute_negatives(col, df_water_years))
 
