@@ -14,7 +14,6 @@ if __name__ == "__main__":
     # --- Begin Flags ---
     # option to plot comparison
     b_compare_data = True
-    s_inflow_spreadsheet_dir = "C:/Users/lthatch/OneDrive - DOI/CalSim/RimInflows/Stantec_052026/San Joaquin Rim Inflows/"
 
     # option to run each element using "upstream" (antecedent) SV INPUT values from sheets rather than from the values
     # calculated within the Python code.
@@ -78,176 +77,6 @@ if __name__ == "__main__":
     # CDEC TLG, gapfilled with a zeron on 9/30/2020
     df_full_data.loc["2020-09",'TLG'] = 0
 
-    # compare with old sheets # TO DO - DELETE BEFORE MERGING TO GIT
-    if b_compare_data:
-
-        # ---- 11267350 in the I_MCLRE spreadsheet 
-        s_old_spreadsheet_fn = 'CS3_I_MCLRE_Rev2022F.xlsx'
-
-        # import previous data
-        # confirm unimpairment matches spreadsheet values
-        s_sheet = 'Big Creek Div 11267350 Ext' # sheet with scurve dissag
-        df_excel = pd.read_excel(s_inflow_spreadsheet_dir+s_old_spreadsheet_fn,
-                                            sheet_name = s_sheet,
-                                            skiprows= 14,
-                                            usecols='B:D',
-                                            index_col = 0)
-
-        fig,ax=plt.subplots()
-        df_excel.TAF[df_excel.TAF != -901 ].plot(ax=ax,label='excel')
-
-        # join and plot difference
-        df_combined = pd.concat([df_excel['TAF'],df_full_data['11267350']],axis=1,sort=True)
-        df_combined['diff'] = df_combined['11267350'] - df_combined['TAF']
-        fig,ax=plt.subplots()
-        df_combined['diff'].plot()
-        ax.set_title('11267350 Big Creek Diversion (Python - Spreadsheet), I_MCLRE')
-
-        print(f'Maximum error for 11267350 Big Creek Diversio: {df_combined['diff'].abs().max()} TAF')
-        print(df_combined[df_combined['diff'].abs() == df_combined['diff'].abs().max()])
-
-        print(df_combined[df_combined['diff'].abs() > 0.01])
-
-        # ---- '11242350' in the I_BUR005 spreadsheet 
-        s_old_spreadsheet_fn = 'CS3_I_BUR005_Rev2022F.xlsm'
-
-        # import previous data
-        # confirm unimpairment matches spreadsheet values
-        s_sheet = 'SOQUEL 11242350 Ext' # sheet with scurve dissag
-        df_excel = pd.read_excel(s_inflow_spreadsheet_dir+s_old_spreadsheet_fn,
-                                            sheet_name = s_sheet,
-                                            skiprows= 14,
-                                            usecols='B:D',
-                                            index_col = 0)
-
-        fig,ax=plt.subplots()
-        df_excel.TAF[df_excel.TAF != -901 ].plot(ax=ax,label='excel')
-
-        # join and plot difference
-        df_combined = pd.concat([df_excel['TAF'],df_full_data['11242350']],axis=1,sort=True)
-        df_combined['diff'] = df_combined['11242350'] - df_combined['TAF']
-        fig,ax=plt.subplots()
-        df_combined['diff'].plot()
-        ax.set_title('11242350 SOQUEL Diverison (Python - Spreadsheet), I_BUR005')
-
-        print(f'Maximum error for 11267350 Soquel Diversion: {df_combined['diff'].abs().max()} TAF')
-        print(df_combined[df_combined['diff'].abs() == df_combined['diff'].abs().max()])
-
-        print(df_combined[df_combined['diff'].abs() > 0.01])
-
-        # ---- 11267350 in the I_ESTMN spreadsheet 
-        s_old_spreadsheet_fn = 'CS3_I_ESTMN_Rev2022F.xlsm'
-
-        # import previous data
-        # confirm unimpairment matches spreadsheet values
-        s_sheet = 'Big Creek Div 11267350' # sheet with scurve dissag
-        df_excel = pd.read_excel(s_inflow_spreadsheet_dir+s_old_spreadsheet_fn,
-                                            sheet_name = s_sheet,
-                                            skiprows= 14,
-                                            usecols='B:D',
-                                            index_col = 0)
-
-        fig,ax=plt.subplots()
-        df_excel.TAF[df_excel.TAF != -901 ].plot(ax=ax,label='excel')
-
-        # join and plot difference
-        df_combined = pd.concat([df_excel['TAF'].replace(-901,np.nan),df_full_data[['11267350','11267350_ESTMN']]],axis=1,sort=True)
-        df_combined['diff'] = df_combined['11267350'] - df_combined['TAF']
-        df_combined['diff_ESTMN'] = df_combined['11267350_ESTMN'] - df_combined['TAF']
-        fig,ax=plt.subplots()
-        df_combined['diff'].plot(label = '11267350')
-        df_combined['diff_ESTMN'].plot(label='11267350_ESTMN')
-        plt.legend()
-        ax.set_title('11267350 Big Creek Diversion (Python - Spreadsheet), I_ESTMN')
-
-        print(f'Maximum error for 11267350 Big Creek Diversio: {df_combined['diff'].abs().max()} TAF')
-        print(df_combined[df_combined['diff'].abs() == df_combined['diff'].abs().max()])
-
-        print(df_combined[df_combined['diff'].abs() > 0.01])
-
-        # ---- '11242350' in the I_BUR005 spreadsheet 
-        s_old_spreadsheet_fn = 'CS3_I_BUR005_Rev2022F.xlsm'
-
-        # import previous data
-        # confirm unimpairment matches spreadsheet values
-        s_sheet = 'SOQUEL 11242350 Ext' # sheet with scurve dissag
-        df_excel = pd.read_excel(s_inflow_spreadsheet_dir+s_old_spreadsheet_fn,
-                                            sheet_name = s_sheet,
-                                            skiprows= 14,
-                                            usecols='B:D',
-                                            index_col = 0)
-
-        fig,ax=plt.subplots()
-        df_excel.TAF[df_excel.TAF != -901 ].plot(ax=ax,label='excel')
-
-        # join and plot difference
-        df_combined = pd.concat([df_excel['TAF'],df_full_data['11242350']],axis=1,sort=True)
-        df_combined['diff'] = df_combined['11242350'] - df_combined['TAF']
-        fig,ax=plt.subplots()
-        df_combined['diff'].plot()
-        ax.set_title('11242350 SOQUEL Diverison (Python - Spreadsheet), I_BUR005')
-
-        print(f'Maximum error for 11267350 Soquel Diversion: {df_combined['diff'].abs().max()} TAF')
-        print(df_combined[df_combined['diff'].abs() == df_combined['diff'].abs().max()])
-
-        print(df_combined[df_combined['diff'].abs() > 0.01])
-
-        # ---- '11242350' in the I_BUR005 spreadsheet 
-        s_old_spreadsheet_fn = 'CS3_I_ESTMN_Rev2022F.xlsm'
-
-        # import previous data
-        # confirm unimpairment matches spreadsheet values
-        s_sheet = 'SOQUEL 11242350' # sheet with scurve dissag
-        df_excel = pd.read_excel(s_inflow_spreadsheet_dir+s_old_spreadsheet_fn,
-                                            sheet_name = s_sheet,
-                                            skiprows= 14,
-                                            usecols='B:D',
-                                            index_col = 0)
-
-        fig,ax=plt.subplots()
-        df_excel.TAF[df_excel.TAF != -901 ].plot(ax=ax,label='excel')
-
-        # join and plot difference
-        df_combined = pd.concat([df_excel['TAF'],df_full_data['11242350']],axis=1,sort=True)
-        df_combined['diff'] = df_combined['11242350'] - df_combined['TAF'].replace(-901,np.nan)
-        fig,ax=plt.subplots()
-        df_combined['diff'].plot()
-        ax.set_title('11242350 SOQUEL Diverison (Python - Spreadsheet), I_ESTMN')
-
-        print(f'Maximum error for 11267350 Soquel Diversion: {df_combined['diff'].abs().max()} TAF')
-        print(df_combined[df_combined['diff'].abs() == df_combined['diff'].abs().max()])
-
-        print(df_combined[df_combined['diff'].abs() > 0.01])
-
-
-        # double check the BUC storage 
-        # ---- '11242350' in the I_BUR005 spreadsheet 
-        s_old_spreadsheet_fn = 'CS3_I_ESTMN_Rev2022F.xlsm'
-
-        # import previous data
-        # confirm unimpairment matches spreadsheet values
-        s_sheet = 'Eastman Storage' # sheet with scurve dissag
-        df_excel = pd.read_excel(s_inflow_spreadsheet_dir+s_old_spreadsheet_fn,
-                                            sheet_name = s_sheet,
-                                            skiprows= 14,
-                                            usecols='B:D',
-                                            index_col = 0)
-
-        fig,ax=plt.subplots()
-        df_excel.TAF[df_excel.TAF != -901 ].plot(ax=ax,label='excel')
-
-        # join and plot difference
-        df_combined = pd.concat([df_excel['TAF'],df_full_data['BUC']],axis=1,sort=True)
-        df_combined['diff'] = df_combined['BUC'] - df_combined['TAF'].replace(-901,np.nan)
-        fig,ax=plt.subplots()
-        df_combined['diff'].plot()
-        ax.set_title('Eastman Storage (Python - Spreadsheet), I_ESTMN')
-
-        print(f'Maximum error for 11267350 Soquel Diversion: {df_combined['diff'].abs().max()} TAF')
-        print(df_combined[df_combined['diff'].abs() == df_combined['diff'].abs().max()])
-
-        print(df_combined[df_combined['diff'].abs() > 0.01])
-
     # -----------------------------
     # --- MERGE AND COPY GAUGES ---
     # -----------------------------
@@ -267,63 +96,6 @@ if __name__ == "__main__":
 
     df_full_data.to_csv('./Intermediate/upper_tuolumne_full_gauge_data_wevap.csv')
 
-    # compare with old sheets # TO DO - DELETE BEFORE MERGING TO GIT
-    if b_compare_data:
-        
-        # I_MCLRE
-        s_old_spreadsheet_fn = 'CS3_I_MCLRE_Rev2022F.xlsx'
-
-        # import previous data
-        # confirm unimpairment matches spreadsheet values
-        s_sheet = 'McClure Evaporation' # sheet with scurve dissag
-        df_excel = pd.read_excel(s_inflow_spreadsheet_dir+s_old_spreadsheet_fn,
-                                            sheet_name = s_sheet,
-                                            skiprows= 14,
-                                            usecols='B:D',
-                                            index_col = 0)
-
-        fig,ax=plt.subplots()
-        df_excel.TAF[df_excel.TAF != -901 ].plot(ax=ax,label='excel')
-        df_full_data['MCLRE_evap'].plot(ax=ax,label='python')
-
-        # join and plot difference
-        df_combined = pd.concat([df_excel['TAF'],df_full_data['MCLRE_evap']],axis=1,sort=True)
-        df_combined['diff'] = df_combined['MCLRE_evap'] - df_combined['TAF']
-        fig,ax=plt.subplots()
-        df_combined['diff'].plot()
-        ax.set_ylabel('TAF Difference')
-        ax.set_title('MCLRE Evaport Volume - Python Calculation - Excel Sheet')
-
-        print(f'Maximum error for MCLRE Evaporation Volume {df_combined['diff'].abs().max()} TAF')
-
-        # I_ESTMN
-        s_old_spreadsheet_fn = 'CS3_I_ESTMN_Rev2022F.xlsm'
-
-        # import previous data
-        # confirm unimpairment matches spreadsheet values
-        s_sheet = 'ESTMN Evaporation' # sheet with scurve dissag
-        df_excel = pd.read_excel(s_inflow_spreadsheet_dir+s_old_spreadsheet_fn,
-                                            sheet_name = s_sheet,
-                                            skiprows= 14,
-                                            usecols='B:D',
-                                            index_col = 0)
-
-        fig,ax=plt.subplots()
-        df_excel.TAF[df_excel.TAF != -901 ].plot(ax=ax,label='excel')
-        df_full_data['ESTMN_evap'].plot(ax=ax,label='python')
-
-        # join and plot difference
-        df_combined = pd.concat([df_excel['TAF'],df_full_data['ESTMN_evap']],axis=1,sort=True)
-        df_combined['diff'] = df_combined['ESTMN_evap'] - df_combined['TAF']
-        fig,ax=plt.subplots()
-        df_combined['diff'].plot()
-        ax.set_ylabel('TAF Difference')
-        ax.set_title('ESTMN Evaportion Volume - Python Calculation - Excel Sheet')
-
-        print(f'Maximum error for ESTMN Evaporation Volume {df_combined['diff'].abs().max()} TAF')
-
-    
-
     # -----------------------------
     # --- UNIMPAIRMENT, ROUND 1 ---
     # -----------------------------
@@ -335,152 +107,14 @@ if __name__ == "__main__":
     df_unimpaired_data['11270000'] = unimpaired_11270000(df_full_data) # from I_MCLRE
     df_unimpaired_data['11257500'] = unimpaired_11257500(df_full_data) # from I_BUR005
     df_unimpaired_data['11257500_ESTMN'] = unimpaired_11257500(df_full_data.copy().drop(columns='11267350').rename(columns={'11267350_ESTMN':'11267350'})) # from I_ESTMN TO DO remove with initial round of improements. 
-    df_unimpaired_data['11259000'] = unimpaired_11259000(df_full_data) # from I_ESTMN
+    df_unimpaired_data['11259000'] = unimpaired_11259000(df_full_data) # from I_ESTMN 
     df_unimpaired_data['ESTMNOutflow'] = unimpaired_ESTMNOutflow(df_full_data) # from I_ESTMN
-
-    # compare with old sheets # DELETE BEFORE MERGING TO GIT
-    if b_compare_data:
-        
-        #----- 11270000 Unimpaired Merced River at Exchequer CA
-        s_old_spreadsheet_fn = 'CS3_I_MCLRE_Rev2022F.xlsx'
-
-        # import previous data
-        # confirm unimpairment matches spreadsheet values
-        s_sheet = 'UNIMP Merced Exchequer 1127000' # sheet with scurve dissag
-        df_excel = pd.read_excel(s_inflow_spreadsheet_dir+s_old_spreadsheet_fn,
-                                            sheet_name = s_sheet,
-                                            skiprows= 14,
-                                            usecols='B:D',
-                                            index_col = 0)
-
-        fig,ax=plt.subplots()
-        df_excel.TAF[df_excel.TAF != -901 ].plot(ax=ax,label='excel')
-        df_unimpaired_data['11270000'].plot(ax=ax,label='python')
-
-        # join and plot difference
-        df_combined = pd.concat([df_excel['TAF'],df_unimpaired_data['11270000']],axis=1,sort=True)
-        df_combined['diff'] = df_combined['11270000'] - df_combined['TAF']
-        fig,ax=plt.subplots()
-        df_combined['diff'].plot()
-        ax.set_title('Unimpaired 1127000 (Python - Spreadsheet), I_MCLRE')
-
-        print(f'Maximum error for Unimpaired 11270000: {df_combined['diff'].abs().max()} TAF')
-        print(df_combined[df_combined['diff'].abs() == df_combined['diff'].abs().max()])
-
-
-        #----- 11257500 Fresno River Near Knowles CA
-        s_old_spreadsheet_fn = 'CS3_I_BUR005_Rev2022F.xlsm'
-
-        # import previous data
-        # confirm unimpairment matches spreadsheet values
-        s_sheet = 'UNIMP Fresno R Knowles' # sheet with scurve dissag
-        df_excel = pd.read_excel(s_inflow_spreadsheet_dir+s_old_spreadsheet_fn,
-                                            sheet_name = s_sheet,
-                                            skiprows= 14,
-                                            usecols='B:D',
-                                            index_col = 0)
-
-        fig,ax=plt.subplots()
-        df_excel.TAF[df_excel.TAF != -901 ].plot(ax=ax,label='excel')
-        df_unimpaired_data['11257500'].plot(ax=ax,label='python')
-
-        # join and plot difference
-        df_combined = pd.concat([df_excel['TAF'],df_unimpaired_data['11257500']],axis=1,sort=True)
-        df_combined['diff'] = df_combined['11257500'] - df_combined['TAF']
-        fig,ax=plt.subplots()
-        df_combined['diff'].plot()
-        ax.set_title('UNIP Fresno R Knowles (Python - Excel), I_BUR005')
-
-        print(f'Maximum error for Unimpaired 11257500: {df_combined['diff'].abs().max()} TAF') 
-
-        #----- 11257500 Fresno River Near Knowles CA compared with ESTMN
-        s_old_spreadsheet_fn = 'CS3_I_ESTMN_Rev2022F.xlsm'
-
-        # import previous data
-        # confirm unimpairment matches spreadsheet values
-        s_sheet = 'UNIMP Fresno 11257500' # sheet with scurve dissag
-        df_excel = pd.read_excel(s_inflow_spreadsheet_dir+s_old_spreadsheet_fn,
-                                            sheet_name = s_sheet,
-                                            skiprows= 14,
-                                            usecols='B:D',
-                                            index_col = 0)
-
-        fig,ax=plt.subplots()
-        df_excel.TAF[df_excel.TAF != -901 ].plot(ax=ax,label='excel')
-        df_unimpaired_data['11257500'].plot(ax=ax,label='python')
-        ax.set_title('UNIMP Fresno R Knowles')
-        ax.legend()
-
-        # join and plot difference
-        df_combined = pd.concat([df_excel['TAF'].replace(-901, pd.NA),df_unimpaired_data[['11257500','11257500_ESTMN']]],axis=1,sort=True)
-        df_combined['diff'] = pd.to_numeric(df_combined['11257500'] - df_combined['TAF'])
-        df_combined['diff_ESTMN'] = pd.to_numeric(df_combined['11257500_ESTMN'] - df_combined['TAF'])
-        fig,ax=plt.subplots()
-        df_combined['diff'].plot(label='Unimpaired w/ Big Creek Div Exteneded')
-        df_combined['diff_ESTMN'].plot(label='Unimpaired w/ Big Creek Div from ESTMN')
-        plt.legend()
-        ax.set_title('UNIMP Fresno R Knowles (Python - Excel), I_ESTMN')
-
-        print(f'Maximum error for Unimpaired 11257500: {df_combined['diff'].abs().max()} TAF') 
-
-
-        #----- 11257500 Fresno River Near Knowles CA
-        s_old_spreadsheet_fn = 'CS3_I_BUR005_Rev2022F.xlsm'
-
-        # import previous data
-        # confirm unimpairment matches spreadsheet values
-        s_sheet = 'UNIMP Fresno R Knowles' # sheet with scurve dissag
-        df_excel = pd.read_excel(s_inflow_spreadsheet_dir+s_old_spreadsheet_fn,
-                                            sheet_name = s_sheet,
-                                            skiprows= 14,
-                                            usecols='B:D',
-                                            index_col = 0)
-
-        fig,ax=plt.subplots()
-        df_excel.TAF[df_excel.TAF != -901 ].plot(ax=ax,label='excel')
-        df_unimpaired_data['11257500'].plot(ax=ax,label='python')
-
-        # join and plot difference
-        df_combined = pd.concat([df_excel['TAF'],df_unimpaired_data['11257500']],axis=1,sort=True)
-        df_combined['diff'] = df_combined['11257500'] - df_combined['TAF']
-        fig,ax=plt.subplots()
-        df_combined['diff'].plot()
-        ax.set_title('UNIP Fresno R Knowles (Python - Excel), I_BUR005')
-
-        print(f'Maximum error for Unimpaired 11257500: {df_combined['diff'].abs().max()} TAF') 
-
-        #----- 11257500 Fresno River Near Knowles CA compared with ESTMN
-        s_old_spreadsheet_fn = 'CS3_I_ESTMN_Rev2022F.xlsm'
-
-        # import previous data
-        # confirm unimpairment matches spreadsheet values
-        s_sheet = 'UNIMP Chowchilla 11259000' 
-        df_excel = pd.read_excel(s_inflow_spreadsheet_dir+s_old_spreadsheet_fn,
-                                            sheet_name = s_sheet,
-                                            skiprows= 14,
-                                            usecols='B:D',
-                                            index_col = 0)
-
-        fig,ax=plt.subplots()
-        df_excel.TAF[df_excel.TAF != -901 ].plot(ax=ax,label='excel')
-        df_unimpaired_data['11259000'].plot(ax=ax,label='python')
-        ax.set_title('UNIMP Chowchilla River below Buchanan')
-        ax.legend()
-
-        # join and plot difference
-        df_combined = pd.concat([df_excel['TAF'].replace(-901, pd.NA),df_unimpaired_data['11259000']],axis=1,sort=True)
-        df_combined['diff'] = pd.to_numeric(df_combined['11259000'] - df_combined['TAF'])
-        fig,ax=plt.subplots()
-        df_combined['diff'].plot(label='Unimpaired w/ Big Creek Div Exteneded')
-        ax.set_title('UNIMP Chowchilla R blw Buchanan (Python - Excel), I_ESTMN')
-
-        print(f'Maximum error for Unimpaired 11257500: {df_combined['diff'].abs().max()} TAF') 
 
     # drop the first row which is only for calculating storage differences
     df_unimpaired_data.drop(index=df_unimpaired_data.index[0], inplace=True)
 
     # save to csv
-    df_unimpaired_data.to_csv('./Intermediate/upper_mokelumne_unimpaired_data.csv')
+    df_unimpaired_data.to_csv('./Intermediate/upper_tuolumne_unimpaired_data.csv')
 
     # ------------------------
     # --- S-CURVE, ROUND 1 ---
@@ -517,85 +151,6 @@ if __name__ == "__main__":
     extend_data(df_unimpaired_data['11257500_ESTMN'],df_unimpaired_data['11259000'],df_extended_data,df_synthetic_data,
         1931,1990,True,'11259000',1922,1980)
 
-
-    # compare with old sheet # TO DO DELETE BEFORE MERGING TO GIT
-    if b_compare_data:
-        
-        #----- 'BurnsReservoirOutflow' on the model A tab of the BUR005 sheet
-        s_old_spreadsheet_fn = 'CS3_I_BUR005_Rev2022F.xlsm'
-
-        # import previous data
-        # confirm unimpairment matches spreadsheet values
-        s_sheet = 'MODELA' # sheet with scurve dissag
-        df_excel = pd.read_excel(s_inflow_spreadsheet_dir+s_old_spreadsheet_fn,
-                                            sheet_name = s_sheet,
-                                            skiprows= 7,
-                                            usecols='AF:AG',
-                                            index_col = 0)
-
-        fig,ax=plt.subplots()
-        df_excel.TAF[df_excel.TAF != -901 ].plot(ax=ax,label='excel')
-
-        # join and plot difference
-        df_combined = pd.concat([df_excel['TAF'],df_extended_data['BurnsReservoirOutflow']],axis=1,sort=True)
-        df_combined['diff'] = df_combined['BurnsReservoirOutflow'] - df_combined['TAF']
-        fig,ax=plt.subplots()
-        df_combined['diff'].plot()
-        ax.set_title('Extended Burns Res (Python - Spreadsheet), I_BUR005')
-
-        print(f'Maximum error for BurnsReservoirOutflow: {df_combined['diff'].abs().max()} TAF')
-        print(df_combined[df_combined['diff'].abs() == df_combined['diff'].abs().max()])
-
-        #----- 11271320 Dry Creek near Snelling on the model A tab of the DCM027 sheet
-        s_old_spreadsheet_fn = 'CS3_I_DCM027_Rev2022F.xlsm'
-
-        # import previous data
-        # confirm unimpairment matches spreadsheet values
-        s_sheet = 'MODELA' # sheet with scurve dissag
-        df_excel = pd.read_excel(s_inflow_spreadsheet_dir+s_old_spreadsheet_fn,
-                                            sheet_name = s_sheet,
-                                            skiprows= 7,
-                                            usecols='AF:AG',
-                                            index_col = 0)
-
-        fig,ax=plt.subplots()
-        df_excel.TAF[df_excel.TAF != -901 ].plot(ax=ax,label='excel')
-
-        # join and plot difference
-        df_combined = pd.concat([df_excel['TAF'],df_extended_data['11271320']],axis=1,sort=True)
-        df_combined['diff'] = df_combined['11271320'] - df_combined['TAF']
-        fig,ax=plt.subplots()
-        df_combined['diff'].plot()
-        ax.set_title('11271320 Dry Creek Near Snelling (Python - Spreadsheet), I_DCM027')
-
-        print(f'Maximum error for BurnsReservoirOutflow: {df_combined['diff'].abs().max()} TAF')
-        print(df_combined[df_combined['diff'].abs() == df_combined['diff'].abs().max()])
-
-        #----- 11259000 Chowchilla River Below Buchanan Dam Near Raymond - I_ESTMN sheet
-        s_old_spreadsheet_fn = 'CS3_I_ESTMN_Rev2022F.xlsm'
-
-        # import previous data
-        # confirm unimpairment matches spreadsheet values
-        s_sheet = 'MODELA' # sheet with scurve dissag
-        df_excel = pd.read_excel(s_inflow_spreadsheet_dir+s_old_spreadsheet_fn,
-                                            sheet_name = s_sheet,
-                                            skiprows= 7,
-                                            usecols='AF:AG',
-                                            index_col = 0)
-
-        fig,ax=plt.subplots()
-        df_excel.TAF[df_excel.TAF != -901 ].plot(ax=ax,label='excel')
-
-        # join and plot difference
-        df_combined = pd.concat([df_excel['TAF'],df_extended_data['11259000']],axis=1,sort=True)
-        df_combined['diff'] = df_combined['11259000'] - df_combined['TAF']
-        fig,ax=plt.subplots()
-        df_combined['diff'].plot()
-        ax.set_title('11259000 Chowchilla R. blw Buchanan Dam near Raymond (Python - Spreadsheet), I_ESTMN')
-
-        print(f'Maximum error for BurnsReservoirOutflow: {df_combined['diff'].abs().max()} TAF')
-        print(df_combined[df_combined['diff'].abs() == df_combined['diff'].abs().max()])
-
     # -----------------------------
     # --- CALCULATE RIM INFLOWS ---
     # -----------------------------
@@ -616,9 +171,6 @@ if __name__ == "__main__":
     I_PEDRO(df_full_data[['SFPUCLG','TLG']],df_rim_inflows)
     
     df_rim_inflows.to_csv('./Outputs/upper_tuolumne_rim_inflows.csv')
-
-
-
 
     # ----------------------------------------------
     # --- COMPARE TO PREVIOUS RIM INFLOW DATASET ---

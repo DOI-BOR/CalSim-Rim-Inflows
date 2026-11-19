@@ -2319,7 +2319,13 @@ def I_BUR005(df_burns_outflow, df_rim_inflows):
     """
 
     # round to two decimal places
-    df_location = df_burns_outflow.copy().round(2)
+    df_location = df_burns_outflow.copy()
+
+    # set anything negative to zero.
+    df_location.loc[df_location < 0] = 0
+
+    # round to two decimal places
+    df_location = df_location.round(2)
 
     # add into the rim inflow dataframe
     df_rim_inflows['I_BUR005'] = df_location
@@ -2343,9 +2349,12 @@ def I_MCD055(df_rim_inflows):
     """
 
     # I_MCD055 uses the I_BUR005 times a watershed factor
-    df_location = df_rim_inflows['I_BUR005']*0.3248
+    df_location = df_rim_inflows['I_BUR005'].copy()*0.3248
 
-        # round to two decimal places
+    # set anything negative to zero.
+    df_location.loc[df_location < 0] = 0
+
+    # round to two decimal places
     df_location = df_location.round(2)
 
     # add into the rim inflow dataframe
@@ -2470,7 +2479,7 @@ def I_LLOYD(df_SFPUCLL,df_rim_inflows):
     """
 
     # I_ELENR uses df_SFPUCLE data extended using Model AA
-    df_location = df_SFPUCLL
+    df_location = df_SFPUCLL.copy()
 
     # set anything negative to zero.
     df_location.loc[df_location < 0] = 0
@@ -4788,57 +4797,6 @@ def I_MCLRE(df_MRC,df_11270000, df_rim_inflows):
     # create the plots to compare the observed vs synthetic data
     create_final_flow_plots(df_location, list(range(1922, 2025)), 'I_MCLRE')
 
-def I_BUR005(df_burns_outflow, df_rim_inflows):
-    """
-    Calculate the final rim inflow for CalSim. Location: I_BUR005
-    Follows the logic from CS3_I_BUR005_Rev2022F.xlsm
-
-    Parameters
-    ----------
-    df_burns_outflow: dataframe
-        One-column dataframe of extended burns reservoir outflows.
-    df_rim_inflows: dataframe
-        Dataframe of rim inflows that have been calculated already. Also target dataframe for newly created rim inflow.
-    Returns
-    -------
-    None
-    """
-
-    # round to two decimal places
-    df_location = df_burns_outflow.copy().round(2)
-
-    # add into the rim inflow dataframe
-    df_rim_inflows['I_BUR005'] = df_location
-
-    # create the plots to compare the observed vs synthetic data
-    create_final_flow_plots(df_location, list(range(1950,2021)), 'I_BUR005')
-
-def I_MCD055(df_rim_inflows):
-    """
-    Calculate the final rim inflow for CalSim Location: I_MCD055 
-    Merced River Accretion Exchequer Dam to Crocker-Huffman Dam
-    Follows the logic from CS3_I_MCD055_Rev2022F.xlsm
-
-    Parameters
-    ----------
-    df_rim_inflows: dataframe
-        Dataframe of rim inflows that have been calculated already. Also target dataframe for newly created rim inflow.
-    Returns
-    -------
-    None
-    """
-
-    # I_MCD055 uses the I_BUR005 times a watershed factor
-    df_location = df_rim_inflows['I_BUR005']*0.3248
-
-        # round to two decimal places
-    df_location = df_location.round(2)
-
-    # add into the rim inflow dataframe
-    df_rim_inflows['I_MCD055'] = df_location
-
-    # create the plots to compare the observed vs synthetic data
-    create_final_flow_plots(df_location, list(range(1922, 2025)), 'I_MCD055')
 
     
 def I_DCM027(df_11271320,df_rim_inflows):
@@ -4859,7 +4817,7 @@ def I_DCM027(df_11271320,df_rim_inflows):
     """
 
     # I_DCM027 uses extended flows from Dry Creek 11271320 times a watershed factor, drainage area of Dry Creek Merced County divied by Dry Ckree near Snelling....
-    df_location = df_11271320*0.5774
+    df_location = df_11271320.copy()*0.5774
 
     # set anything negative to zero.
     df_location.loc[df_location < 0] = 0
@@ -4891,7 +4849,7 @@ def I_HTCHY(df_SFPUCHH,df_rim_inflows):
     """
 
     # I_HTCHY uses df_SFPUCHH data extended using Model B
-    df_location = df_SFPUCHH
+    df_location = df_SFPUCHH.copy()
 
     # set anything negative to zero.
     df_location.loc[df_location < 0] = 0
@@ -4923,7 +4881,7 @@ def I_ELENR(df_SFPUCLE,df_rim_inflows):
     """
 
     # I_ELENR uses df_SFPUCLE data extended using Model AA
-    df_location = df_SFPUCLE
+    df_location = df_SFPUCLE.copy()
 
     # set anything negative to zero.
     df_location.loc[df_location < 0] = 0
@@ -4994,7 +4952,7 @@ def I_PEDRO(df_location,df_rim_inflows):
     # I_PEDRO uses SFPUC where available, otherwise it uses CDEC data 
     # if SFPUC data is not available (-901 or NA) fill w/ CDEC data
     df_location['combined'] = df_location['SFPUCLG'].replace(-901,pd.NA) 
-    df_location['combined'].fillna(df_location['TLG'])
+    df_location['combined'] = df_location['combined'].fillna(df_location['TLG'])
 
     # Remove all upstream rim inflows: I_ELENR, I_LLOYD, I_HTCHY, I_TU054
     df_location['combined'] = df_location['combined'] - df_rim_inflows[['I_ELENR','I_LLOYD','I_HTCHY','I_TUO054']].sum(axis=1)
@@ -5030,6 +4988,9 @@ def I_TUO054(df_rim_inflows):
 
     # I_TUO054 uses the I_ESTMN times a watershed factor
     df_location = df_rim_inflows['I_ESTMN']*0.0441
+
+    # set anything negative to zero.
+    df_location.loc[df_location < 0] = 0
 
     # round to two decimal places
     df_location = df_location.round(2)

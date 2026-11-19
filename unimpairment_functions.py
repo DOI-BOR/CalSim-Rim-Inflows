@@ -1418,10 +1418,15 @@ def unimpaired_11259000(df_full_gauge_data):
          Unpaired flow for current station
      """
 
+    # missing evaporation and storage are set to zero
+    df_evaportion = df_full_gauge_data['ESTMN_evap'].copy().fillna(0)
+    df_storage = df_full_gauge_data['BUC'].copy().fillna(0)
+
+
     # combine storage diff, evap, and export
     df_unimpaired = unimpaired_flows(df_full_gauge_data['11259000'],
-                                    fl_additions=[df_full_gauge_data['ESTMN_evap']],
-                                    fl_storages=[df_full_gauge_data['BUC']])
+                                    fl_additions=[df_evaportion],
+                                    fl_storages=[df_storage])
 
     return df_unimpaired
 
