@@ -809,3 +809,74 @@ def calc_evap_JNKSN(s_dss_file, df_storage_data):
     # calculate and set the evaporation
     df_storage_data['JNKSN_evap'] = calculate_evap_data(df_storage_data['JNKSN_STORAGE'], df_evap_rates,
                                                         df_area_capacity[['Capacity', 'Area']], True)
+
+def calc_evap_MCLRE(s_dss_file, df_storage_data):
+    """
+    Calculate the evaporation amount for McClure Reservoir. Follows the logic in CS3_I_MCLRE_Rev2022F.
+    McClure does not use an area capacity table, instead it uses a regression equation. It does not use the calculate_evap_data function used by other locations.
+
+    Parameters
+    ----------
+    s_dss_file: str
+        Path to DSS file with evaporation rates
+    df_storage_data: dataframe
+        Storage data containing the reservoir
+
+    Returns
+    -------
+    None
+    """
+
+    # get the evap rates from the dss file
+    df_evap_rates = read_evap_data(s_dss_file, 'ER_MCLRE')
+
+    # subset the storage for MCLRE USGS Station '11269500', data is in TAF
+    #df_area_capacity = pd.read_csv(r"./Area Capacities/JNKSN_AC.csv")
+    df_area_capacity = df_storage_data['11269500'].to_frame()
+    df_area_capacity.columns = ['TAF']
+
+    # fill NAs with zero as the sheet does, this will populate the first row
+    df_area_capacity.iloc[0, :] = df_area_capacity.iloc[0].fillna(0)
+
+    # surface area of MCLRE is calculated using a regression Equation from MRSIM work
+    # Area = 4.205*Storage + 62.651*Storage^0.5 + 89.497*Storage^(1/3) - 94.002
+    df_area_capacity['Capacity'] = (df_area_capacity['TAF'] + df_area_capacity['TAF'].shift(1)) / 2
+    df_area_capacity['Area'] = [4.205*s + 62.651*s**0.5 + 89.497*s**(1/3) - 94.002 for s in df_area_capacity['Capacity']]
+
+    # Construction was complated in 1926, storage and area prior to 1926 should be set to zero
+    df_area_capacity.loc[:'1926-01-01','Area'] = 0
+    df_area_capacity.loc['1930-10-31','Area'] = 0  # TO DO FIRST ROUND OF IMPROVEMENTS - Remove this line, and add line to set all negative areas to zero, reservoir area should not be negative.
+
+    # calculate and save the evaporation volume data
+    df_all = pd.concat([df_area_capacity,df_evap_rates],axis=1,sort=True)
+    df_all['evap_TAF'] = df_all['Area'] * df_all['IN']/12/1000 # /12 for in to feet, and /1000 AF to TAF
+    df_storage_data['MCLRE_evap'] = df_all.loc[df_storage_data.index,'evap_TAF']
+
+def calc_evap_ESTMN(s_dss_file, df_storage_data):
+    """
+    Calculate the evaporation amount for Buchanan Reservoir/Eastman Lake. Follows the logic in CS3_I_ESTMN_Rev2022F.
+
+    Parameters
+    ----------
+    s_dss_file: str
+        Path to DSS file with evaporation rates
+    df_storage_data: dataframe
+        Storage data containing the reservoir
+
+    Returns
+    -------
+    None
+    """
+
+    # get the evap rates from the dss file
+    df_evap_rates = read_evap_data(s_dss_file, 'ER_ESTMN')
+
+    # read in the area capacity table
+    df_area_capacity = pd.read_csv(r"./Area Capacities/BUC_AC.csv")
+
+    # rename the area and capacity columns
+    df_area_capacity.rename(columns={'Capacity (TAF)':'Capacity','Area (acres)':'Area'},inplace=True)
+
+    # calculate and set the evaporation
+    df_storage_data['ESTMN_evap'] = calculate_evap_data(df_storage_data['BUC'], df_evap_rates,
+                                                        df_area_capacity[['Capacity', 'Area']], True)
