@@ -11,18 +11,16 @@ import urllib.error, urllib.request
 import os
 
 
-def s_curve_disaggregation(df_x_data, df_y_data, i_x_start_year, i_x_end_year, i_y_start_year,
-                           i_y_end_year, b_use_all_y=False, s_strange_sheet=''):
+def s_curve_disaggregation(df_x_data, df_y_data, i_x_start_year, i_x_end_year, i_y_start_year, i_y_end_year, b_use_all_y=False):
     """
     Takes in the x data and the y data and generated a full timeseries of synthetic y data.
     This is meant to replicate what the Excel/VBA does for the S-Curve disaggregation.
     Parameters
     ----------
-    df_x_data: series
-        Full timeseries of x data. This is the reference unimpaired flow data. A pandas series.
-    df_y_data: series
-        Full timeseries of available y data. This is the data that is availiable for the location we want data for. A
-        pandas series.
+    df_x_data: dataframe
+        Full timeseries of x data. This is the reference unimpaired flow data.
+    df_y_data: dataframe
+        Full timeseries of available y data. This is the data that is availiable for the location we want data for.
     i_x_start_year: int
         Start year of x data to use
     i_x_end_year: int
@@ -33,8 +31,6 @@ def s_curve_disaggregation(df_x_data, df_y_data, i_x_start_year, i_x_end_year, i
         End year of y data to use
     b_use_all_y: bool
         Whether to use all y data or just the section in the Y years
-    s_strange_sheet: string
-        For a few sheets with strange modifications to the s-curve procedure, this is the sheet name with capital letters.
 
     Returns
     -------
@@ -43,27 +39,25 @@ def s_curve_disaggregation(df_x_data, df_y_data, i_x_start_year, i_x_end_year, i
     df_y_data_synthetic: dataframe
         Full timeseries of synthetic y data.
     """
+
     # if it is a series, get it into the monthly format
     if isinstance(df_x_data, pd.Series):
         df_x_data = timeseries_to_monthly(df_x_data.to_frame('TAF'))
         df_y_data = timeseries_to_monthly(df_y_data.to_frame('TAF'))
-
+     
     # drop any missing data in either frame
     df_x_data.dropna(inplace=True)
     df_y_data.dropna(inplace=True)
 
     # trim the x data to just the specified years
-    df_x_data = df_x_data.loc[i_x_start_year:i_x_end_year, :]
-
+    df_x_data = df_x_data.loc[i_x_start_year:i_x_end_year,:]
+    #print(df_x_data)
     # trim the y data to only the x years incase the y is longer for some reason
     df_y_data = df_y_data.loc[i_x_start_year:i_x_end_year, :]
+    #print(df_y_data)
 
     # first we want the x value monthly average for just the years of y data we want to keep
-    # if working on COL003 (11315000), we need to use only 1944 to 2021 for monthly averages
-    if (s_strange_sheet == 'COL003'):
-        dl_x_month_avgs = [0] + df_x_data.loc[1944:i_y_end_year, :].mean(axis=0).tolist()
-    else:
-        dl_x_month_avgs = [0] + df_x_data.loc[i_y_start_year:i_y_end_year, :].mean(axis=0).tolist()
+    dl_x_month_avgs = [0] + df_x_data.loc[i_y_start_year:i_y_end_year, :].mean(axis=0).tolist()
 
     # get the sum of this for a yearly average value
     d_x_year_total_avg = sum(dl_x_month_avgs)
@@ -81,42 +75,30 @@ def s_curve_disaggregation(df_x_data, df_y_data, i_x_start_year, i_x_end_year, i
 
     # now we want the same cumulative proportion of the monthly averages as before but for the y data
     # first get the averages for the months
-    if(s_strange_sheet == 'COL003'):
-        # if doing COL003 (11315000) only average the y months from 1944 to present
-        dl_y_month_avgs = [0] + df_y_data.loc[1944:i_y_end_year, :].mean(axis=0).tolist()
-    elif(s_strange_sheet == 'DEE023'):
-        # if doing DEE023, do the standard calculation for this step
-        dl_y_month_avgs = [0] + df_y_data.loc[i_y_start_year:i_y_end_year, :].mean(axis=0).tolist()
-    else:
-        dl_y_month_avgs = [0] + df_y_data.loc[i_y_start_year:i_y_end_year, :].mean(axis=0).tolist()
+    dl_y_month_avgs = [0] + df_y_data.loc[i_y_start_year:i_y_end_year, :].mean(axis=0).tolist()
 
     # get the sum of this for a yearly average value
-    d_y_year_total_avg = sum(dl_y_month_avgs)
+    d_x_year_total_avg = sum(dl_y_month_avgs)
 
     # proportion for the months
-    dl_y_avg_cumulative_proportions = [0] + [dl_y_month_avgs[i] / d_y_year_total_avg for i in range(1, len(dl_y_month_avgs))]
+    dl_y_avg_cumulative_proportions = [0] + [dl_y_month_avgs[i] / d_x_year_total_avg for i in range(1, len(dl_y_month_avgs))]
 
     # get the cumulative sum
     dl_y_avg_cumulative_proportions = np.cumsum(dl_y_avg_cumulative_proportions)
 
-    # now for every value in df_x_cumulative_proportions, we want the smallest value in dl_x_avg_cumulative_proportions
-    # that is greater than or equal to the value
+    # now for every value in df_x_cumulative_proportions, we want the smallest value in dl_x_avg_cumulative_proportions that is greater than or equal to the value
     # np.searchsorted does this with side set to 'left' for a greater than or equal to
     il_indices = np.searchsorted(dl_x_avg_cumulative_proportions, df_x_cumulative_proportions, side='left')
 
     # now if we ever had any that landed at the end they would be set to len(dl_x_avg_cumulative_proportions) but we want them to be len(dl_x_avg_cumulative_proportions) - 1 so we don't go out of bounds
     il_indices = np.clip(il_indices, 0, len(dl_x_avg_cumulative_proportions) - 1)
 
-
-    df_factors = pd.DataFrame(
-        np.where((dl_x_avg_cumulative_proportions[il_indices] - dl_x_avg_cumulative_proportions[il_indices - 1]) == 0,
-                 (df_x_cumulative_proportions - dl_x_avg_cumulative_proportions[il_indices - 1]) / (
-                             dl_x_avg_cumulative_proportions[il_indices] - dl_x_avg_cumulative_proportions[
-                         il_indices - 1] + 0.000001),
-                 (df_x_cumulative_proportions - dl_x_avg_cumulative_proportions[il_indices - 1]) / (
-                             dl_x_avg_cumulative_proportions[il_indices] - dl_x_avg_cumulative_proportions[
-                         il_indices - 1])),
-        columns=df_x_cumulative_proportions.columns, index=df_x_cumulative_proportions.index)
+    # calculate the factors that df_x_cumulative_proportions is different by
+    # if (dl_x_avg_cumulative_proportions[il_indices] - dl_x_avg_cumulative_proportions[il_indices-1]) is zero, add a little bit to it so we don't divide by zero (this is what the VBA does)
+    df_factors = pd.DataFrame(np.where((dl_x_avg_cumulative_proportions[il_indices] - dl_x_avg_cumulative_proportions[il_indices-1]) == 0,
+                                       (df_x_cumulative_proportions - dl_x_avg_cumulative_proportions[il_indices-1]) / (dl_x_avg_cumulative_proportions[il_indices] - dl_x_avg_cumulative_proportions[il_indices-1] + 0.000001),
+                                       (df_x_cumulative_proportions - dl_x_avg_cumulative_proportions[il_indices-1]) / (dl_x_avg_cumulative_proportions[il_indices] - dl_x_avg_cumulative_proportions[il_indices-1])),
+                              columns=df_x_cumulative_proportions.columns, index=df_x_cumulative_proportions.index)
 
     # now use these factors get df_y_cumulative_proportions by doing the reverse of that operation but with dl_y_avg_cumulative_proportions instead of dl_x_avg_cumulative_proportions
     # these are the scaled version of the df_x_cumulative_proportions numbers
@@ -127,8 +109,6 @@ def s_curve_disaggregation(df_x_data, df_y_data, i_x_start_year, i_x_end_year, i
     df_x_year_totals = pd.DataFrame(df_x_data.sum(axis=1))
     df_y_year_totals = pd.DataFrame(df_y_data.sum(axis=1))
 
-    if s_strange_sheet == "DEE023":
-        df_y_year_totals.drop(index=1967, inplace=True)
     # fit a model and get the slope and intercept
     o_lin_model = LinearRegression()
     o_lin_model.fit(df_x_year_totals.loc[df_y_year_totals.index,], df_y_year_totals)
@@ -138,7 +118,7 @@ def s_curve_disaggregation(df_x_data, df_y_data, i_x_start_year, i_x_end_year, i
     # get the scaled y yearly totals
     df_y_year_totals_scaled = df_x_year_totals * d_slope + d_intercept
 
-    # multiply df_y_cumulative_proportions by the scaled yearly totals to get df_y_cumulative_totals which is the equivalent of df_x_data after the cumulative sum
+    # multiply df_y_cumulative_proportions byt the scaled yearly totals to get df_y_cumulative_totals which is the equivalent of df_x_data after the cumulative sum
     df_y_cumulative_totals = df_y_cumulative_proportions.mul(df_y_year_totals_scaled.values, axis=0)
 
     # do the reverse of a cumulative sum to get the scaled version of df_x_data
@@ -157,12 +137,150 @@ def s_curve_disaggregation(df_x_data, df_y_data, i_x_start_year, i_x_end_year, i
 
     return df_y_data_output, df_y_data_synthetic
 
+def s_curve_disaggregationv2(df_x_data, df_y_data, i_x_start_year, i_x_end_year, i_y_start_year, i_y_end_year, b_use_all_y=False, exclude_from_regression=None):
+    """
+    Takes in the x data and the y data and generated a full timeseries of synthetic y data.
+    This is meant to replicate what the Excel/VBA does for the S-Curve disaggregation.
+    Parameters
+    ----------
+    df_x_data: dataframe
+        Full timeseries of x data. This is the reference unimpaired flow data.
+    df_y_data: dataframe
+        Full timeseries of available y data. This is the data that is availiable for the location we want data for.
+    i_x_start_year: int
+        Start year of x data to use
+    i_x_end_year: int
+        End year of x data to use
+    i_y_start_year: int
+        Start year of y data to use
+    i_y_end_year: int
+        End year of y data to use
+    b_use_all_y: bool
+        Whether to use all y data or just the section in the Y years
+    exclude_from_regression: list
+        excludes the list of specified years from the years of available df_current_data between i_x_start_year to i_final_year from the linear regression
+    
+    Returns
+    -------
+    df_y_data_output: dataframe
+        Full timeseries of y data. Y data in the selected rang is kept, the rest is synthetic.
+    df_y_data_synthetic: dataframe
+        Full timeseries of synthetic y data.
+    """
+
+    # if it is a series, get it into the monthly format
+    if isinstance(df_x_data, pd.Series):
+        df_x_data = timeseries_to_monthly(df_x_data.to_frame('TAF'))
+        df_y_data = timeseries_to_monthly(df_y_data.to_frame('TAF'))
+
+    # drop any missing data in either frame
+    df_x_data.dropna(inplace=True)
+    df_y_data.dropna(inplace=True)
+
+    # trim the x data to just the specified years
+    df_x_data = df_x_data.loc[i_x_start_year:i_x_end_year,:]
+
+    # trim the y data to only the x years incase the y is longer for some reason
+    df_y_data = df_y_data.loc[i_x_start_year:i_x_end_year, :]
+    #print(df_y_data.index)   ####qaqc
+    # first we want the x value monthly average for just the years of y data we want to keep
+    dl_x_month_avgs = [0] + df_x_data.loc[i_y_start_year:i_y_end_year, :].mean(axis=0).tolist()
+
+    # get the sum of this for a yearly average value
+    d_x_year_total_avg = sum(dl_x_month_avgs)
+
+    # we want to cumulative proportion for each month
+    # first calculate the proportion for the months
+    dl_x_avg_cumulative_proportions = [0] + [dl_x_month_avgs[i]/d_x_year_total_avg for i in range(1,len(dl_x_month_avgs))]
+
+    # get the cumulative sum
+    dl_x_avg_cumulative_proportions = np.cumsum(dl_x_avg_cumulative_proportions)
+
+    # now we want the same but for each individual year, not just the averages
+    # first calculate the proportion of the month/year total then do a cumulative sum
+    df_x_cumulative_proportions = df_x_data.div(df_x_data.sum(axis=1), axis=0).cumsum(axis=1)
+
+    # now we want the same cumulative proportion of the monthly averages as before but for the y data
+    # first get the averages for the months
+    dl_y_month_avgs = [0] + df_y_data.loc[i_y_start_year:i_y_end_year, :].mean(axis=0).tolist()
+
+    # get the sum of this for a yearly average value
+    d_x_year_total_avg = sum(dl_y_month_avgs)
+
+    # proportion for the months
+    dl_y_avg_cumulative_proportions = [0] + [dl_y_month_avgs[i] / d_x_year_total_avg for i in range(1, len(dl_y_month_avgs))]
+
+    # get the cumulative sum
+    dl_y_avg_cumulative_proportions = np.cumsum(dl_y_avg_cumulative_proportions)
+
+    # now for every value in df_x_cumulative_proportions, we want the smallest value in dl_x_avg_cumulative_proportions that is greater than or equal to the value
+    # np.searchsorted does this with side set to 'left' for a greater than or equal to
+    il_indices = np.searchsorted(dl_x_avg_cumulative_proportions, df_x_cumulative_proportions, side='left')
+
+    # now if we ever had any that landed at the end they would be set to len(dl_x_avg_cumulative_proportions) but we want them to be len(dl_x_avg_cumulative_proportions) - 1 so we don't go out of bounds
+    il_indices = np.clip(il_indices, 0, len(dl_x_avg_cumulative_proportions) - 1)
+
+    # calculate the factors that df_x_cumulative_proportions is different by
+    # if (dl_x_avg_cumulative_proportions[il_indices] - dl_x_avg_cumulative_proportions[il_indices-1]) is zero, add a little bit to it so we don't divide by zero (this is what the VBA does)
+    df_factors = pd.DataFrame(np.where((dl_x_avg_cumulative_proportions[il_indices] - dl_x_avg_cumulative_proportions[il_indices-1]) == 0,
+                                       (df_x_cumulative_proportions - dl_x_avg_cumulative_proportions[il_indices-1]) / (dl_x_avg_cumulative_proportions[il_indices] - dl_x_avg_cumulative_proportions[il_indices-1] + 0.000001),
+                                       (df_x_cumulative_proportions - dl_x_avg_cumulative_proportions[il_indices-1]) / (dl_x_avg_cumulative_proportions[il_indices] - dl_x_avg_cumulative_proportions[il_indices-1])),
+                              columns=df_x_cumulative_proportions.columns, index=df_x_cumulative_proportions.index)
+
+    # now use these factors get df_y_cumulative_proportions by doing the reverse of that operation but with dl_y_avg_cumulative_proportions instead of dl_x_avg_cumulative_proportions
+    # these are the scaled version of the df_x_cumulative_proportions numbers
+    df_y_cumulative_proportions = dl_y_avg_cumulative_proportions[il_indices- 1] + df_factors * (dl_y_avg_cumulative_proportions[il_indices] - dl_y_avg_cumulative_proportions[il_indices- 1])
+
+    # now we will fit a linear regression on all the y data we have (even beyond the y window) and also exclude some years if specified
+    # first get the year totals
+    df_x_year_totals = pd.DataFrame(df_x_data.sum(axis=1))
+    df_y_year_totals = pd.DataFrame(df_y_data.sum(axis=1))
+
+    # Default regression years are all available Y years
+    regression_years = df_y_year_totals.index.tolist()
+
+    # Remove any excluded years
+    if exclude_from_regression is not None:
+        regression_years = [
+            yr for yr in regression_years
+            if yr not in exclude_from_regression
+        ]
+    #print(regression_years)  ###qaqc
+
+    # fit a model and get the slope and intercept
+    o_lin_model = LinearRegression()
+    o_lin_model.fit(df_x_year_totals.loc[regression_years], df_y_year_totals.loc[regression_years])
+    d_slope = o_lin_model.coef_[0][0]
+    d_intercept = o_lin_model.intercept_[0]
+    print(d_slope)   ###qaqc
+    print(d_intercept)   ###qaqc
+    # get the scaled y yearly totals
+    df_y_year_totals_scaled = df_x_year_totals * d_slope + d_intercept
+
+    # multiply df_y_cumulative_proportions byt the scaled yearly totals to get df_y_cumulative_totals which is the equivalent of df_x_data after the cumulative sum
+    df_y_cumulative_totals = df_y_cumulative_proportions.mul(df_y_year_totals_scaled.values, axis=0)
+
+    # do the reverse of a cumulative sum to get the scaled version of df_x_data
+    df_y_data_synthetic = pd.DataFrame(np.diff(df_y_cumulative_totals, prepend=0), index=df_x_data.index, columns=df_x_data.columns)
+
+    # put the range of original y to keep back in
+    df_y_data_output = df_y_data_synthetic.copy()
+
+    # if df_y_data, put all y data back in
+    if b_use_all_y:
+        df_y_data_output.loc[df_y_data.index, :] = df_y_data
+
+    # otherwise just the y years range
+    else:
+        df_y_data_output.loc[i_y_start_year:i_y_end_year, :] = df_y_data.loc[i_y_start_year:i_y_end_year, :]
+
+    return df_y_data_output, df_y_data_synthetic
 
 def s_curve_comparison_plots(df_final_y_dat, df_y_data_synthetic, df_x_data, df_y_data, s_current_location):
     """
     Generates two plots to understand the quality of the generated data.
-    First plot compares the historical y data and the reference x data.
-    Second plot compares the historical y data and the synthetic y data.
+    First plot compares the historical y data and teh reference x data.
+    Second plot compares the historical y data and teh synthetic y data.
 
     Parameters
     ----------
@@ -286,18 +404,18 @@ def unimpaired_flows(df_impaired, fl_storages=[], fl_additions=[], fl_subtractio
 
     Parameters
     ----------
-    df_impaired: seires
+    df_impaired: dataframe
         Impaired flow data
-    fl_storages: list of series
+    fl_storages: list of dataframes
         Storage data for the reservoirs upstream
-    fl_additions: list of series
+    fl_additions: list of dataframes
         Data that needs to be added in
-    fl_subtractions: list of series
+    fl_subtractions: list of dataframes
         Data that needs to be subtracted out
 
     Returns
     -------
-    df_unimpaired: series
+    df_unimpaired: dataframe
         Unimpaired flow data
     """
 
@@ -884,18 +1002,17 @@ def read_previous_data(s_path, df_new_data):
 
 
 def extend_data(df_reference_data, df_current_data, df_extended_data, df_synthetic_data,
-                i_y_start_year, i_y_end_year, b_use_all_y_data, s_name, i_x_start_year=1922,
-                i_final_year=2021, s_strange_sheet=''):
+                i_y_start_year, i_y_end_year, b_use_all_y_data, s_name, i_x_start_year=1922, i_final_year=2021):
 
     """
     Extends data using the s-curve disaggregation. Also creates the plots and saves the data into dataframes.
 
     Parameters
     ----------
-    df_reference_data: series
-        Reference pandas series
-    df_current_data: series
-        Current dataset series to be extended
+    df_reference_data: dataframe
+        Reference dataset
+    df_current_data: dataframe
+        Current dataset
     df_extended_data: dataframe
         Already extended data
     df_synthetic_data: dataframe
@@ -910,18 +1027,18 @@ def extend_data(df_reference_data, df_current_data, df_extended_data, df_synthet
         Name of current station
     i_final_year: int
         Final year for the x data
-    s_strange_sheet: string
-        For a few sheets with strange modifications to the s-curve procedure, this is the sheet name with capital letters.
+
     Returns
     -------
     None
     """
+
     # do the s-curve disaggregation
     df_curr_final_data, df_curr_synthetic_data = s_curve_disaggregation(df_reference_data,
                                                                         df_current_data,
                                                                         i_x_start_year, i_final_year,
                                                                         i_y_start_year, i_y_end_year,
-                                                                        b_use_all_y_data, s_strange_sheet)
+                                                                        b_use_all_y_data)
     # generate the comparison plots
     s_curve_comparison_plots(df_curr_final_data, df_curr_synthetic_data,
                              timeseries_to_monthly(df_reference_data), timeseries_to_monthly(df_current_data),
@@ -931,37 +1048,25 @@ def extend_data(df_reference_data, df_current_data, df_extended_data, df_synthet
     df_extended_data[s_name] = monthly_to_timeseries(df_curr_final_data)
     df_synthetic_data[s_name] = monthly_to_timeseries(df_curr_synthetic_data)
 
-def extend_data_multi_model(df_reference_data_1, df_current_data_1, df_reference_data_2, df_current_data_2,
-                df_extended_data, df_synthetic_data,
-                i_y1_start_year, i_y1_end_year, i_y2_start_year, i_y2_end_year, b_use_all_y_data, s_name,
-                s_model_name_1, s_model_name_2, i_x_start_year=1922,
-                i_final_year=2021, s_strange_sheet=''):
+def extend_datav2(df_reference_data, df_current_data, df_extended_data, df_synthetic_data,
+                i_y_start_year, i_y_end_year, b_use_all_y_data, s_name, i_x_start_year=1922, i_final_year=2021, exclude_from_regression=None):
 
     """
-    Extends data using the s-curve disaggregation and compares two different models.
-    Also creates the plots and saves the data into dataframes.
+    Extends data using the s-curve disaggregation. Also creates the plots and saves the data into dataframes.
 
     Parameters
     ----------
-    df_reference_data_1: series
-        Reference pandas series, for running model 1
-    df_current_data_1: series
-        Current dataset series to be extended, for running model 1
-    df_reference_data_2: series
-        Reference pandas series, for running model 2
-    df_current_data_2: series
-        Current dataset series to be extended, for running model 2
+    df_reference_data: dataframe
+        Reference dataset
+    df_current_data: dataframe
+        Current dataset
     df_extended_data: dataframe
         Already extended data
     df_synthetic_data: dataframe
         Extended fully synthetic data
-    i_y1_start_year: int
-        Start year for current data, model 1
-    i_y1_end_year: int
-        End year for current data
-    i_y2_start_year: int
-        Start year for current data, model 1
-    i_y2_end_year: int
+    i_y_start_year: int
+        Start year for current data
+    i_y_end_year: int
         End year for current data
     b_use_all_y_data: bool
         Flag for if we want to use all of the y data instead of just the selected years
@@ -969,37 +1074,29 @@ def extend_data_multi_model(df_reference_data_1, df_current_data_1, df_reference
         Name of current station
     i_final_year: int
         Final year for the x data
-    s_strange_sheet: string
-        For a few sheets with strange modifications to the s-curve procedure, this is the sheet name with capital letters.
+    exclude_from_regression: list
+        excludes the list of specified years from the years of available df_current_data between i_x_start_year to i_final_year from the linear regression
+
+
     Returns
     -------
     None
     """
-    # do the s-curve disaggregation for model 1
-    df_curr_final_data_1, df_curr_synthetic_data_1 = s_curve_disaggregation(df_reference_data_1,
-                                                                        df_current_data_1,
+
+    # do the s-curve disaggregation
+    df_curr_final_data, df_curr_synthetic_data = s_curve_disaggregationv2(df_reference_data,
+                                                                        df_current_data,
                                                                         i_x_start_year, i_final_year,
-                                                                        i_y1_start_year, i_y1_end_year,
-                                                                        b_use_all_y_data, s_strange_sheet)
-    # do the s-curve disaggregation for model 2
-    df_curr_final_data_2, df_curr_synthetic_data_2 = s_curve_disaggregation(df_reference_data_2,
-                                                                            df_current_data_2,
-                                                                            i_x_start_year, i_final_year,
-                                                                            i_y2_start_year, i_y2_end_year,
-                                                                            b_use_all_y_data, s_strange_sheet)
-
+                                                                        i_y_start_year, i_y_end_year,
+                                                                        b_use_all_y_data, exclude_from_regression=exclude_from_regression)
     # generate the comparison plots
-    two_s_curves_comparison_plots(df_curr_final_data_1, timeseries_to_monthly(df_reference_data_1),
-                                  df_curr_final_data_2, timeseries_to_monthly(df_reference_data_2), s_name,
-                                  s_model_name_1, s_model_name_2)
+    s_curve_comparison_plots(df_curr_final_data, df_curr_synthetic_data,
+                             timeseries_to_monthly(df_reference_data), timeseries_to_monthly(df_current_data),
+                             s_name)
 
     # put the data into the two final dataframes
-    df_extended_data[s_name+s_model_name_1] = monthly_to_timeseries(df_curr_final_data_1)
-    df_synthetic_data[s_model_name_1] = monthly_to_timeseries(df_curr_synthetic_data_1)
-
-    # put the data into the two final dataframes
-    df_extended_data[s_name+s_model_name_2] = monthly_to_timeseries(df_curr_final_data_2)
-    df_synthetic_data[s_model_name_2] = monthly_to_timeseries(df_curr_synthetic_data_2)
+    df_extended_data[s_name] = monthly_to_timeseries(df_curr_final_data)
+    df_synthetic_data[s_name] = monthly_to_timeseries(df_curr_synthetic_data)
 
 
 def calculate_watershed_factors(s_path):
@@ -1160,179 +1257,3 @@ def create_rim_inflow_comparison_plots(df_new, df_old):
         plt.savefig(f'./Figures/Comparison/{location}', bbox_inches='tight', dpi=300)
         plt.close()
 
-def sum_if_all_not_nan(df_target_data, s_sum_name, df_source_data, sl_source_names):
-    """
-    This function creates a new dataset by summing two or more sources of data, but only when all sources are not NaN
-    Parameters
-    ----------
-    df_target_data: dataframe
-        The dataframe where the result ends up.
-    s_sum_name: string
-        Column name in df_target_data where we will put the sum
-    df_source_data: dataframe
-        The dataframe that contains the items being summed.
-    sl_source_names: list of strings
-        List of column names for the source data sets
-
-    Returns
-    -------
-    None
-    """
-    df_target_data[s_sum_name] = np.where(
-        df_source_data[sl_source_names].notna().all(axis=1),
-        df_source_data[sl_source_names].sum(axis=1),
-        np.nan
-    )
-
-def compare_two_df(df_data_1, df_data_2, s_data_1_name, s_data_2_name):
-    """
-    This function prints some statements to the console about how similar two dataframe series are, element by
-    element
-    ----------
-    df_data_1: dataframe
-        The dataframe of one data set to be compared.
-    df_data_2: dataframe
-        The dataframe of the other data set to be compared.
-    s_data_1_name: string
-        The name of data_1 to be printed.
-    s_data_2_name: string
-        The name of data_2 to be printed.
-    Returns
-    -------
-    None
-    """
-
-    # align and calculate differences
-    aligned_1, aligned_2 = df_data_1.align(df_data_2, join='inner')
-    d_diffs = (aligned_2 - aligned_1).abs().max()
-    d_data_1_mean = df_data_1.mean()
-    d_data_2_mean = df_data_1.mean()
-    print("The mean for ", s_data_1_name, " is ", d_data_1_mean)
-    print("The mean for ", s_data_2_name, " is ", d_data_2_mean)
-    print("Their maximum difference is ", d_diffs)
-
-
-def read_replication_data(ls_sheet_info, df_before, df_after):
-    """
-    This function prints some statements to the console about how similar two dataframe series are, element by
-    element
-    ----------
-    ls_sheet_info: list of lists of strings
-        each element in the main list is a list. within the inner list are three strings: a variable name to be used as
-        the column name, the path to the "before" file, and the path to the "after" file.
-    df_before: dataframe
-        The dataframe where the "before" data ends up.
-    df_after: dataframe
-        The dataframe where the "after" data ends up.
-    Returns
-    -------
-    None
-    """
-    # Custom month ordering starting with October
-    c_month_map = {
-        'Oct': 0, 'Nov': 1, 'Dec': 2,
-        'Jan': 3, 'Feb': 4, 'Mar': 5,
-        'Apr': 6, 'May': 7, 'Jun': 8,
-        'Jul': 9, 'Aug': 10, 'Sep': 11
-    }
-    for sheet in ls_sheet_info:
-        # create a column in df_before with the name of the excel sheet we're taking data from
-        df_before[sheet[0]] = np.nan
-
-        # read in the sheet
-        df_temp = pd.read_csv(sheet[1], index_col=0)
-
-        # convert index from 3 letter names to integers, Oct -> 0 ... Sep -> 11
-        df_temp.columns = (df_temp.columns.map(c_month_map))
-
-        # convert to timeseries and write into df_before
-        df_before[sheet[0]] = monthly_to_timeseries(df_temp)
-
-        # create a column in df_after with the name of the excel sheet we're taking data from
-        df_after[sheet[0]] = np.nan
-
-        # read in the sheet
-        df_temp = pd.read_csv(sheet[2], index_col=0)
-
-        # convert index from 3 letter names to integers, Oct -> 0 ... Sep -> 11
-        df_temp.columns = (df_temp.columns.map(c_month_map))
-
-        # convert to timeseries and write into df_after
-        df_after[sheet[0]] = monthly_to_timeseries(df_temp)
-
-def two_s_curves_comparison_plots(df_final_y_dat_1, df_x_data_1,
-                                  df_final_y_dat_2, df_x_data_2, s_current_location, s_model_name_1, s_model_name_2):
-    """
-    Generates a plot to compare model 1 and model 2 for a sheet.
-
-    Parameters
-    ----------
-    df_final_y_dat_1: dataframe
-        Final y data for model 1 that is synthetic where data was missing and historical where we had the data
-    df_x_data_1: dataframe
-        Original x data for model 1
-    df_final_y_dat_2: dataframe
-        Final y data for model 2 that is synthetic where data was missing and historical where we had the data
-    df_x_data_2: dataframe
-        Original x data for model 2
-    s_current_location: str
-        Current location of the data
-    s_model_name_1: str
-        The name for model 1
-    s_model_name_2: str
-        The name for model 2
-    Returns
-    -------
-    None
-    """
-    # first remove nans so they won't get plotted as zeros
-    df_x_data_1.dropna(inplace=True)
-
-    # get the years months when the data overlaps
-    o_overlaps_1 = df_final_y_dat_1.index.intersection(df_x_data_1.index)
-    o_overlaps_2 = df_final_y_dat_2.index.intersection(df_x_data_1.index)
-
-    # the plot looks at yearly totals for where we have y data
-    # create yearly totals for both models, x and y
-    df_x_totals_1 = df_x_data_1.sum(axis=1)[o_overlaps_1]
-    df_y_totals_1 = df_final_y_dat_1.sum(axis=1)[o_overlaps_1]
-    df_x_totals_2 = df_x_data_2.sum(axis=1)[o_overlaps_2]
-    df_y_totals_2 = df_final_y_dat_2.sum(axis=1)[o_overlaps_2]
-
-
-    # scatter plot of this data with labels of the years
-    plt.figure(figsize=(10, 5))
-    plt.scatter(df_x_totals_1.values, df_y_totals_1.values, marker='.', color='royalblue')
-    plt.scatter(df_x_totals_2.values, df_y_totals_2.values, marker='.', color='red')
-
-    # uncomment out these lines to add in year values next to data points
-    # for x,y,label in zip(df_x_totals_1.values, df_y_totals_1.values, df_y_totals_1.index.values):
-    #     plt.text(x,y,label, ha='center', va='bottom', size='x-small')
-
-    # fit lines of best fit
-    slope_1, intercept_1 = np.polyfit(df_x_totals_1.values, df_y_totals_1.values, 1)
-    dl_line_vals_1 = intercept_1 + slope_1 * df_x_totals_1.values
-    r2_1 = r2_score(df_y_totals_1.values, dl_line_vals_1)
-    slope_2, intercept_2 = np.polyfit(df_x_totals_2.values, df_y_totals_2.values, 1)
-    dl_line_vals_2 = intercept_2 + slope_2 * df_x_totals_2.values
-    r2_2 = r2_score(df_y_totals_2.values, dl_line_vals_2)
-
-
-    # plot the lines of best fit
-    # show the formulas for the lines and the r squared values as the label
-
-    plt.plot(df_x_totals_1.values, dl_line_vals_1, color='royalblue', linewidth=0.5, label=f'{s_model_name_1}\ny = {slope_1:.4f}x + {intercept_1:.4f}\nR^2 = {r2_1:.4f}')
-    plt.plot(df_x_totals_2.values, dl_line_vals_2, color='red', linewidth=0.5, label=f'{s_model_name_2}\ny = {slope_2:.4f}x + {intercept_2:.4f}\nR^2 = {r2_2:.4f}')
-
-
-    # formatting of plot
-    plt.grid(alpha=0.5)
-    plt.xlim((0,None))
-    plt.ylim(0,None)
-    plt.xlabel('Reference Data Flows (TAF)')
-    plt.ylabel(f'{s_current_location} Flows (TAF)')
-    # plt.title('Correlation of Annual Flows (TAF)')
-    plt.legend()
-    plt.savefig(f'./Figures/Model_Comparison/{s_current_location} Comparison of Two Models, {s_model_name_1} and {s_model_name_2}'
-                , bbox_inches='tight', dpi=300)
-    plt.close()
