@@ -1,0 +1,140 @@
+River,Location,Below 5000 ft,5-6000 ft,6-7000 ft,7-8000 ft,8000+ ft,Total,"Precip
+or
+Gage volume differences","Precip
+or
+Gage volume differences"
+Middle Yuba River,Jackson Meadows Reservoir Local,,,22.65015013,14.5273541,0.159901142,37.34,0.987858172,
+Middle Yuba River,MYR above Milton Reservoir,,0.546250026,1.16814727,,,1.71,1.081041311,
+Middle Yuba River,Milton Reservoir Local,,0.356031886,0.360264828,,,0.72,1.069687779,
+Middle Yuba River,Wilson Creek above Diversion Dam,,0.062175508,0.734798235,0.02128416,,0.82,1.092635153,
+Middle Yuba River,Wilson Creek above MYR,,0.162561406,0.002733561,,,0.17,1.085170362,
+Middle Yuba River,MYR above East Fork Creek,0.924673217,7.255201786,10.8025935,0.539009444,,19.52,1.064575098,1.213157351
+Middle Yuba River,East Fork Creek,0.562725285,5.467735127,5.784173283,1.346595186,,13.16,1.043261786,1.18886935
+Middle Yuba River,MYR above Wolf Creek,8.863947213,3.701662387,0.394636432,,,12.96,0.991610685,1.130009329
+Middle Yuba River,Wolf Creek,5.344632171,3.283071717,0.081828946,,,8.71,0.997430995,1.136641976
+Middle Yuba River,MYR above Kanaka Creek,21.48092774,0.273402907,,,,21.75,0.956607028,1.090120227
+Middle Yuba River,Kanaka Creek,13.25431843,4.667305804,0.025888399,,,17.95,0.993783783,1.132485724
+Middle Yuba River,MYR above Our House Dam,9.590676192,,,,,9.59,,1.065047561
+South Yuba River,SYR above Kidd Lake,,,7.915667793,16.07291701,1.299806896,25.29,0.992776875,
+South Yuba River,Kidd Lake - Local,,,0.563612873,,,0.56,0.973175993,
+South Yuba River,Kidd Lake Dam Reach,,,0.116132557,,,0.12,0.980830217,
+South Yuba River,SYR above Cascade Creek,,,0.846022975,0.16836782,,1.01,0.993497251,
+South Yuba River,Upper Peak Lake - Local,,,0.619101337,,,0.62,0.980586138,
+South Yuba River,Lower Peak Lake,,,0.38707155,0.000173025,,0.39,0.986164142,
+South Yuba River,Cascade Creek,,,0.363025406,,,0.36,0.987320911,
+South Yuba River,SYR above Cisco,,3.516367139,15.06124764,5.209747324,,23.79,1.012016295,
+South Yuba River,SYR above Lake Spaulding,,4.653338928,1.505543709,0.355611537,,6.51,1.053537471,
+South Yuba River,White Rock Lake - Local,,,,0.47077587,0.69962958,1.17,1.051132821,
+South Yuba River,White Rock Creek,,,0.033515937,1.72670363,0.310704137,2.07,1.080153007,
+South Yuba River,North Creek,,,0.168506116,4.942001294,1.267020217,6.38,1.033787393,
+South Yuba River,North Creek above Lake Fordyce,,,1.359391397,2.411092331,0.059965239,3.83,1.025989183,
+South Yuba River,Meadow Lake - Local,,,,1.303864127,,1.3,1.070500155,
+South Yuba River,Meadow Lake Dam Reach,,,0.374781913,0.352028143,,0.73,1.049165117,
+South Yuba River,Lake Sterling - Local,,,0.189479301,0.871656917,,1.06,1.015426966,
+South Yuba River,Fordyce Lake,,,5.893959114,8.660068737,0.191840265,14.75,1.018346044,
+South Yuba River,Fordyce Creek above Lake Spaulding,,5.617943904,9.63953815,6.834114962,0.000247801,22.09,1.052663909,
+South Yuba River,Lake Spaulding Local,,5.601108696,0.089330488,,,5.69,1.07455494,
+South Yuba River,SYR above Jordan Creek,0.126216956,0.092273516,,,,0.22,1.052141945,1.198988908
+South Yuba River,Jordan Creek above Diversion Dam,,0.240069704,3.30156E-06,,,0.24,1.075846051,
+South Yuba River,Fuller Lake - Local,,0.537332011,0.004106647,,,0.54,1.069757832,
+South Yuba River,Jordan Creek above SYR,0.611822887,0.762966966,0.001849418,,,1.38,1.057484849,1.205077519
+South Yuba River,SYR above Langs Crossing,0.08383816,0.025960512,,,,0.11,1.043472722,1.189109726
+South Yuba River,SYR above Rucker Creek,1.790617977,1.036274232,0.002518221,,,2.83,1.031109734,1.175021241
+South Yuba River,Blue Lake - Local,,0.15997483,0.080710708,,,0.24,1.099862627,
+South Yuba River,Rucker Lake,,1.030735107,0.378095553,,,1.41,1.092550025,
+South Yuba River,Rucker Creek above Diversion Dam,,0.091279221,,,,0.09,1.069993819,
+South Yuba River,Rucker Creek above SYR,0.222726083,1.224401752,0.092055647,,,1.54,1.053513861,1.200552302
+South Yuba River,SYR above Fall Creek,1.278229282,0.2983413,,,,1.58,0.986419305,1.12409339
+South Yuba River,Feeley Lake Local,,,0.337112056,0.066183855,,0.4,1.120310579,
+South Yuba River,Carr Lake,,,0.078034651,,,0.08,1.102477105,
+South Yuba River,Fall Creek above Lake Creek,,1.086811314,2.926538793,0.451540303,,4.46,1.120810708,
+South Yuba River,Fall Creek above Diversion Dam,,0.838248265,0.030861378,,,0.87,1.064779051,
+South Yuba River,Clear Creek above Diversion Dam,,1.167761493,0.360320183,,,1.53,1.054051455,
+South Yuba River,Clear Creek above Fall Creek,,0.438288441,,,,0.44,1.041122164,
+South Yuba River,Trap Creek above Diversion Dam,,0.477077604,0.124148428,,,0.6,1.069516081,
+South Yuba River,Trap Creek above Fall Creek,0.078944365,0.585164301,0.028493615,,,0.69,1.045361837,1.191262504
+South Yuba River,Fall Creek above SYR,0.222801626,0.847954683,,,,1.07,1.020619122,1.16306646
+South Yuba River,SYR above Diamond Creek,2.292335227,0.111684788,,,,2.4,0.954216455,1.087396003
+South Yuba River,Diamond Creek,3.972532768,1.377730824,,,,5.35,0.973925631,1.10985598
+South Yuba River,SYR above Canyon Creek,1.326110859,,,,,1.33,,1.065886542
+South Yuba River,French Lake Local,,,1.955225809,2.861348788,7.17899E-05,4.82,1.049045849,
+South Yuba River,Canyon Ck above Faucherie Lake,,,1.185828804,0.487884953,0.024229058,1.7,1.031497798,
+South Yuba River,Faucherie Lake Local,,,1.417716834,1.35063216,0.000337606,2.77,1.047725808,
+South Yuba River,Canyon Ck above Sawmill Lake,,0.216738282,2.297277851,0.414711946,,2.93,1.053223339,
+South Yuba River,Sawmill Lake Local,,0.413122564,3.710111635,0.603933418,,4.73,1.094280743,
+South Yuba River,Canyon Ck above Bowman Lake,,0.150806985,0.011540005,,,0.16,1.037624481,
+South Yuba River,Jackson Lake Local,,,0.394214267,0.303926801,0.001368355,0.7,1.060299733,
+South Yuba River,Jackson Creek above Bowman Lake,,1.251558793,3.640894958,0.79561701,0.051227809,5.74,1.061083843,
+South Yuba River,Bowman Lake Local,,2.759420003,2.117596289,0.065236337,,4.94,1.014849912,
+South Yuba River,Canyon Ck above Texas Creek,0.888767186,4.077588567,1.800132968,,,6.77,1.01538939,1.157106816
+South Yuba River,Upper Rock Lake Local,,,0.169284888,0.006238498,,0.18,1.069290292,
+South Yuba River,Lower Rock Lake,,,0.112144994,,,0.11,1.072923205,
+South Yuba River,Texas Ck above Lindsey Creek,,0.434811072,2.378623892,0.134279979,,2.95,1.038986199,
+South Yuba River,Culbertson Lake Local,,,0.439859134,0.030237663,,0.47,1.100785625,
+South Yuba River,Upper Lindsey Lake Local,,,0.109760853,0.054879008,,0.16,1.112292787,
+South Yuba River,Middle Lindsey Lake,,,0.211035657,0.000621584,,0.21,1.092432641,
+South Yuba River,Lower Lindsey Lake,,,0.468947288,0.038006805,,0.51,1.086380003,
+South Yuba River,Lindsey Ck above Texas Creek,,0.142635182,0.403247429,,,0.55,1.070815173,
+South Yuba River,Texas Ck above Diversion Dam,,0.148142866,0.14755293,,,0.3,1.051211187,
+South Yuba River,Texas Creek above Canyon Creek,0.031977504,0.093682249,,,,0.13,1.030431479,1.174248323
+South Yuba River,Canyon Ck above Little Canyon Ck,2.600855283,2.107268977,0.048148669,,,4.76,1.013811858,1.155309109
+South Yuba River,Little Canyon Creek,1.011923571,2.450201684,0.406358882,,,3.87,1.014673005,1.156290446
+South Yuba River,Canyon Ck above SYR,0.944698294,,,,,0.94,,1.088882219
+South Yuba River,SYR above Scotchman Creek,2.683897642,,,,,2.68,,1.055193705
+South Yuba River,Scotchman Creek,4.914097022,0.272716855,,,,5.19,0.942348274,1.073871385
+South Yuba River,SYR above Poorman Creek,3.714778182,,,,,3.71,,1.025552686
+South Yuba River,Poorman Creek,14.14045842,6.602778798,2.443746901,,,23.19,0.989669363,1.127797057
+South Yuba River,SYR above Humbug Creek,22.49730773,,,,,22.5,,1.044523227
+South Yuba River,Humbug Creek,10.61560755,,,,,10.62,,1.068016835
+South Yuba River,SYR above Spring Creek,8.505145816,,,,,8.51,,0.973930233
+South Yuba River,Spring Creek,9.164941118,,,,,9.16,,1.013739756
+South Yuba River,SYR above Rock Creek,5.965283374,,,,,5.97,,0.940142878
+South Yuba River,Rock Creek,13.71720523,,,,,13.72,,0.97455751
+South Yuba River,SYR above Rush Creek,7.007078441,,,,,7.01,,0.874208993
+South Yuba River,Rush Creek,5.631555884,,,,,5.63,,0.863060351
+South Yuba River,SYR above Shady Creek,1.576580558,,,,,1.58,,0.781016887
+South Yuba River,Shady Creek,14.58884622,,,,,14.59,,0.917600101
+South Yuba River,SYR above Lake Englebright,11.90601714,,,,,11.91,,0.746564928
+North Fork of North Fork American River,Lake Valley Reservoir - Local,,1.342081168,3.021419702,,,4.36,1.086155654,
+North Fork of North Fork American River,NF of NF Am River above Lake Valley Res Spill,,0.33899595,0.506929099,,,0.85,1.120224897,
+North Fork of North Fork American River,NF of NF Am River above Six Mile Creek,,0.335308882,0.003478448,,,0.34,1.091581248,
+North Fork of North Fork American River,Kelly Lake - Local,,0.198744325,0.335581422,,,0.53,1.078818001,
+North Fork of North Fork American River,Six Mile Creek above NF of NF Am River,,1.198509078,0.403953764,,,1.6,1.088531596,
+North Fork of North Fork American River,NF of NF Am River above Lake Valley Canal Div Dam,,1.127238641,0.206026724,,,1.33,1.09053876,
+North Fork of North Fork American River,NF of NF Am River above NF American River,22.01238347,19.8401053,3.77024391,,,45.62,1.000608006,1.140262402
+Canyon Creek,Canyon Ck Headwaters,0.905705638,0.171269959,,,,1.08,0.951319989,1.084095279
+Canyon Creek,Canyon Ck above Towle Canal Div Dam,0.481687619,,,,,0.48,,1.050287019
+Canyon Creek,Canyon Ck above Pulp Mill Impoundment,3.878179717,,,,,3.88,,1.041383617
+Bear River,Bear River above YB-137,0.035797784,0.494620353,,,,0.53,1.053320217,1.200331631
+Bear River,Bear River above Gage YB-139,0.084054473,0.008163558,,,,0.09,1.038813615,1.18380035
+Bear River,Bear River above Highway 20,0.735622718,0.147031568,,,,0.88,1.032849652,1.177003999
+Bear River,Bear River above Boardman Canal Div Dam,1.312627044,0.836016077,,,,2.15,1.024682997,1.167697528
+Bear River,Bear River above Drum Afterbay,6.737643266,0.987172579,,,,7.72,0.969547625,1.104866937
+Bear River,Drum Afterbay - Local,0.533485689,,,,,0.53,,1.049796035
+Bear River,Bear River above Dutch Flat Afterbay,5.058217126,,,,,5.06,,1.032338679
+Bear River,Little Bear Creek above Lower Boardman Div Dam,1.575765572,,,,,1.58,,1.037510183
+Bear River,Dutch Flat Afterbay,2.694157056,,,,,2.69,,0.989396683
+Bear River,Bear River above Dutch Flat Canyon,0.548904282,,,,,0.55,,0.940976174
+Bear River,Dutch Flat Canyon,0.909185228,,,,,0.91,,0.94130756
+Bear River,Bear River above Squires Canyon,0.831634721,,,,,0.83,,0.907671152
+Bear River,Squires Canyon,1.425353654,,,,,1.43,,0.933759955
+Bear River,Bear River above Chicago Park PH,2.090702503,,,,,2.09,,0.891074882
+Bear River,Bear River above Steephollow Creek,1.051207429,,,,,1.05,,0.881204163
+Bear River,Steephollow Creek,21.12604829,3.111056221,,,,24.24,0.919248544,1.047547637
+Bear River,Bear River above Rollins Reservoir,0.488490102,,,,,0.49,,0.87145919
+Bear River,Rollins Reservoir - Local,12.36306294,,,,,12.36,,0.852309347
+Bear River,Greenhorn Creek above Rollins Reservoir,38.38746538,,,,,38.39,,0.987048118
+Bear River,Bear River above Dog Bar Road,13.49325416,,,,,13.49,,0.781047265
+Bear River,Bear River above Lake Combie,6.769501466,,,,,6.77,,0.718783006
+Auburn Ravine,Auburn Ravine above Wise PH,4.3,,,,,4.3,,1.730620522
+Auburn Ravine,Auburn Ravine above North Ravine,0.415664076,,,,,0.42,,1.645593363
+Auburn Ravine,North Ravine,5.147393403,,,,,5.15,,1.714498146
+Auburn Ravine,Auburn Ravine below North Ravine,0.85987845,,,,,0.86,,1.596332343
+Dry Creek,Lake Arthur,0.950472079,,,,,0.95,,0.65993568
+Dry Creek,Lake Theodore,0.710610516,,,,,0.71,,0.671574927
+Dry Creek,Halsey Afterbay,1.414283478,,,,,1.41,,0.64009837
+Dry Creek,Dry Ck above Red Hawk Ranch Reservoir,3.270031235,,,,,3.27,,0.624434427
+Dry Creek,Dry Creek above Rock Creek,2.284084248,,,,,2.28,,0.599843208
+Dry Creek,Rock Creek Reservoir - Local,2.17939929,,,,,2.18,,0.611231595
+Dry Creek,Rock Creek above Dry Creek,2.494481236,,,,,2.49,,0.59674143
+Dry Creek,Dry Creek above Coon Creek,11.74454935,,,,,11.74,,0.606091354

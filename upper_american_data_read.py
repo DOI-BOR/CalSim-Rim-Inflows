@@ -6,9 +6,9 @@ if __name__ == "__main__":
     # this file reads in the upper american USGS and CDEC data amd combines it with the previous data
 
     # this holds the USGS data (sometimes gap filled) from the previous extension
-    s_previous_data = r".\Inputs\upper_american_2022_extension_data.csv"
+    s_previous_data = r"./Inputs/upper_american_2022_extension_data.csv"
 
-    s_station_list = r'.\Inputs\upper_american_data_stations.csv'
+    s_station_list = r'./Inputs/upper_american_data_stations.csv'
 
     df_station_list = pd.read_csv(s_station_list, header=0)
 
